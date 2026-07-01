@@ -77,7 +77,7 @@ header {
   overflow:      hidden;
   gap:           5px;
 	margin-top:    10px;
-  border:        3px solid rgb(var(--ctp-surface1-rgb));
+  border:        3px solid rgb(var(--ctp-surface2-rgb));
 
 	.tab {
     width:            100%;
@@ -122,7 +122,7 @@ header {
 }
 
 /* =============== SEARCH BAR =============== */
-.search-bar {
+.search-pill {
   display:           flex;
   flex-direction:    row;
   align-items:       center;

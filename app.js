@@ -19,7 +19,7 @@ function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
 
   card.innerHTML = `
     <div class="folder-tab">
-      <span class="folder-tab-text">${fileCount} Files</span>
+      <span class="file-count">${fileCount} Files</span>
     </div>
     <div class="folder-body">
       <div class="folder-preview">
@@ -37,6 +37,7 @@ function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
   gridContainer.appendChild(card)
 }
 
+
 function setupMarquee(root = document) {
   root.querySelectorAll('.folder-title').forEach(title => {
     const span = title.querySelector('span')
@@ -49,6 +50,7 @@ function setupMarquee(root = document) {
     }
   })
 }
+
 
 function initNavPill() {
 	const pill = document.querySelector('.nav-pill')
@@ -69,34 +71,6 @@ function initNavPill() {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Fix this later, the icons just look off
 function initSortPill() {
 	const pill    = document.querySelector('.sort-pill')
 	if (!pill) return

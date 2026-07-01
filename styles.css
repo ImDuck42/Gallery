@@ -276,7 +276,7 @@ header {
     transform:        skewX(-20deg) translateX(4.75px); /* Align tab start with border start */
     transition:       background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 
-    .folder-tab-text {
+    .file-count {
       display:   inline-block;
       transform: skewX(20deg);
     }
@@ -380,6 +380,18 @@ header {
     }
   }
 }
+
+
+
+
+/* =============== GALLERY GRID =============== */
+
+
+
+
+
+
+
 
 /* =============== Animations =============== */
 @keyframes marquee-loop {

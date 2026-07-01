@@ -53,28 +53,40 @@
 
 
 		<div class="content">
-			<div class="folder-grid active">
+			<div class="folder-grid _active"> <!-- Disable to test other tabs -->
+				<!-- Folders will be populated by the `createFolderCard()` function -->
 
-
-				<!-- Single Mockup Folder -->
+				<!-- Single Mockup Folder Marquee Test -->
 				<div class="folder-card" style="--accent: var(--ctp-mauve-rgb);">
-					<div class="folder-tab">
-						<span class="folder-tab-text">42 Files</span>
-					</div>
+					<info class="folder-tab">
+						<span class="file-count">42 Files</span>
+					</info>
 					<div class="folder-body">
 						<div class="folder-preview">
 							<img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&auto=format&fit=crop&q=60" alt="Cozy Room Preview">
 						</div>
-						<div class="folder-info">
+						<info class="folder-info">
 							<h3 class="folder-title">
 								<span>Cozy Rooms but im too drunk on motor oil to gamble away all my money in a roblox casino</span>
 							</h3>
 							<span class="folder-size">148 MB</span>
-						</div>
+						</info>
 					</div>
 				</div>
+			</div>
 
+			<div class="gallery-grid active">
+				<div class="filter-panel">
+					<div class="chipcontainer">
 
+					</div>
+					<span id="image-count">XXX Images</span>
+				</div>
+
+				<!-- Mockup Images For Testing -->
+				<div class="gallery-card">
+					<img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&auto=format&fit=crop&q=60" alt="Gallery Image">
+				</div>
 			</div>
 		</div>
 

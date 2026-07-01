@@ -42,8 +42,10 @@ function setupMarquee(root = document) {
     const span = title.querySelector('span')
     if (span && span.scrollWidth > title.clientWidth) {
       title.classList.add('marquee')
+      title.style.setProperty('--marquee-room', title.clientWidth + 'px')
     } else {
       title.classList.remove('marquee')
+      title.style.removeProperty('--marquee-room')
     }
   })
 }

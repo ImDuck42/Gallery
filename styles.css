@@ -47,7 +47,7 @@ body {
   background-color: rgb(var(--ctp-crust-rgb));
   display:          flex;
   flex-direction:   column;
-  font-weight:     bold;
+  font-weight:      bold;
   font-family:      sans-serif;
 }
 

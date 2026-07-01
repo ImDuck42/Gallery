@@ -4,3 +4,5 @@ make nav pill look not bland
 add nice website scroll bar
 
 Implement Gallery and Settings tab
+
+![Preview](./assets/image.png)

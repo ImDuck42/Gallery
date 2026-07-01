@@ -51,36 +51,43 @@ body {
   font-family:      sans-serif;
 }
 
-.content {
-	background-color: rgb(var(--ctp-mantle-rgb));
-	border-radius:    10px;
-	height:           100%;
-	margin:           10px;
-	overflow-y:       auto;
-}
-
 header {
   display:         flex;
   flex-direction:  row;
   justify-content: space-evenly;
 }
 
+.content {
+	background-color: rgb(var(--ctp-mantle-rgb));
+	border-radius:    10px;
+	height:           100%;
+	margin:           10px;
+	overflow-y:       auto;
+
+  & > div:not(.active) {
+    display: none;
+  }
+}
+
 /* =============== NAVIGATION PILL =============== */
 .nav-pill {
   display:       flex;
-  width:         fit-content;
+  width:         400px;
   border-radius: 100vw;
   overflow:      hidden;
   gap:           5px;
 	margin-top:    10px;
+  border:        3px solid rgb(var(--ctp-surface1-rgb));
 
 	.tab {
+    width:            100%;
 		padding:          10px 24px;
 		background-color: rgb(var(--ctp-surface0-rgb));
 		color:            rgb(var(--ctp-text-rgb));
-		transition:       background-color 0.25s ease;
-		transform:        skewX(-20deg);
+		transition:       background-color 0.25s ease, color 0.25s ease, transform 0.15s ease;
+    transform:        skewX(-20deg);
 		border-radius:    10px;
+    text-align:       center;
 	}	
 
 	.label {
@@ -100,13 +107,16 @@ header {
 		}
 
 		&:hover {
-			background-color: rgb(var(--ctp-surface2-rgb));
+			color: rgb(var(--ctp-subtext1-rgb));
 		}
 
+ 		&:active {
+ 			transform: skewX(-20deg) scaleX(1.05);
+ 		}
+ 
 		&.active {
 			background-color: rgb(var(--ctp-mauve-rgb));
   		color:            rgb(var(--ctp-surface0-rgb));
-
 		}
 	}
 }
@@ -118,7 +128,7 @@ header {
   align-items:       center;
   margin-top:        10px;
   width:             400px;
-  height:            40px;
+  height:            42px;
   border:            3px solid rgb(var(--ctp-surface2-rgb));
   border-radius:     100vw;
   background-color:  rgb(var(--ctp-surface0-rgb));
@@ -193,7 +203,7 @@ header {
 
   .sort-option {
     position:   relative;
-    padding:    10px 24px;
+    padding:    10px 20px;
     border:     none;
     background: none;
     color:      rgb(var(--ctp-text-rgb));

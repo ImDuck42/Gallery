@@ -48,6 +48,50 @@ function setupMarquee(root = document) {
   })
 }
 
+function initNavPill() {
+	const pill = document.querySelector('.nav-pill')
+	if (!pill) return
+
+	const tabs = pill.querySelectorAll('.tab')
+
+	tabs.forEach(function (tab) {
+		tab.addEventListener('click', function (event) {
+			event.preventDefault()
+
+			if (tab.classList.contains('active')) return
+
+			tabs.forEach(function (item) { item.classList.remove('active') })
+			tab.classList.add('active')
+		})
+	})
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Fix this later, the icons just look off
@@ -201,7 +245,7 @@ function populateRandomGallery(count = 50) {
 
 populateRandomGallery(50)
 
+initNavPill()
 initSortPill()
-
 setupMarquee()
 window.addEventListener('resize', () => setupMarquee())

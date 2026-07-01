@@ -49,6 +49,7 @@ function setupMarquee(root = document) {
 }
 
 
+
 // Fix this later, the icons just look off
 function initSortPill() {
 	const pill    = document.querySelector('.sort-pill')

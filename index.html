@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>{this.name}</title>
+
+  <link rel="stylesheet" href="./styles.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+</head>
+	<body>
+		<header>
+			<nav class="nav-pill">
+				<a href="#" class="tab active">
+					<span class="label">Folders</span>
+				</a>
+				<a href="#" class="tab">
+					<span class="label">Gallery</span>
+				</a>
+				<a href="#" class="tab">
+					<span class="label">Settings</span>
+				</a>
+			</nav>
+
+
+
+
+			<search class="search-bar">
+				<i class="fas fa-search"></i>
+				<input type="text" class="search-input" placeholder="Search..." />
+				<i class="fas fa-play"></i>
+			</search>
+
+			<sort class="sort-pill">
+				<div class="sort-slider">
+					<span></span>
+				</div>
+				<button class="sort-option active" data-sort="name">
+					<span><i class="fas fa-arrow-up"></i>Name</span>
+				</button>
+				<button class="sort-option" data-sort="size">
+					<span><i class="fas fa-arrow-up"></i>Size</span>
+				</button>
+				<button class="sort-option" data-sort="date">
+					<span><i class="fas fa-arrow-up"></i>Date</span>
+				</button>
+				<button class="sort-option" data-sort="type">
+					<span><i class="fa-solid fa-shuffle"></i>Random</span>
+				</button>
+			</sort>
+		</header>
+
+
+
+
+		<div class="content">
+			<div class="folder-grid">
+				
+				<!-- Single Mockup Folder -->
+				<div class="folder-card" style="--accent: var(--ctp-mauve-rgb);">
+					<div class="folder-tab">
+						<span class="folder-tab-text">42 Files</span>
+					</div>
+					<div class="folder-body">
+						<div class="folder-preview">
+							<img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?w=400&auto=format&fit=crop&q=60" alt="Cozy Room Preview">
+						</div>
+						<div class="folder-info">
+							<h3 class="folder-title">
+								<span>Cozy Rooms but im too drunk on motor oil to gamble away all my money in a roblox casino</span>
+							</h3>
+							<span class="folder-size">148 MB</span>
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<script type="module" src="./app.js"></script>
+	</body>
+</html>

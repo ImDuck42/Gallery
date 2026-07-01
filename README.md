@@ -6,6 +6,7 @@ add nice website scroll bar
 
 Implement Gallery and Settings tab  
 On search icon hover change its color to a random accent one
+add filecount badge to interactive elements (make every single element on site interactable)
 
 # Preview:
 ![Preview](./assets/image.png)

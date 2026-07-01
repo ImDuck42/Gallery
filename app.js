@@ -1,19 +1,30 @@
-function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
-  const validAccents = ['rosewater','flamingo','pink','mauve','red','maroon','peach','yellow','green','teal','sky','sapphire','blue','lavender']
+// ========================================================================== //
+// CONFIGURATION
+// ========================================================================== //
+const ACCENTS = [
+  'rosewater', 'flamingo', 'pink', 'mauve', 'red', 'maroon',
+  'peach', 'yellow', 'green', 'teal', 'sky', 'sapphire', 'blue', 'lavender'
+]
 
-	if (!validAccents.includes(accentName)) {
-    console.warn(`Unknown accent "${accentName}", falling back to mauve.`)
-    accentName = 'mauve'
-  }
+const HEX_COLORS = {
+  rosewater: '#f5e0dc', flamingo: '#f2cdcd', pink: '#f5c2e7', mauve: '#cba6f7',
+  red: '#f38ba8', maroon: '#eba0ac', peach: '#fab387', yellow: '#f9e2af',
+  green: '#a6e3a1', teal: '#94e2d5', sky: '#89dceb', sapphire: '#74c7ec',
+  blue: '#89b4fa', lavender: '#b4befe'
+}
+
+// ========================================================================== //
+// DOM FUNCTIONS
+// ========================================================================== //
+function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
+  if (!ACCENTS.includes(accentName)) accentName = 'mauve'
 
   const gridContainer = document.querySelector('.folder-grid')
-  if (!gridContainer) {
-    console.error("Target folder grid container not found.")
-    return
-  }
+  if (!gridContainer) return
 
   const imageUrl = URL.createObjectURL(previewImage)
   const card     = document.createElement('div')
+  
   card.className = 'folder-card'
   card.style.setProperty('--accent', `var(--ctp-${accentName}-rgb)`)
 
@@ -27,16 +38,201 @@ function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
       </div>
       <div class="folder-info">
         <h3 class="folder-title">
-					<span>${name}</span>
-				</h3>
+          <span>${name}</span>
+        </h3>
         <span class="folder-size">${sizeMB} MB</span>
       </div>
     </div>
   `
 
+  card.addEventListener('click', () => openFolderInGallery(name))
+
   gridContainer.appendChild(card)
 }
 
+function openFolderInGallery(folderName) {
+  const tabs   = document.querySelectorAll('.nav-pill .tab')
+  const panels = document.querySelectorAll('.content > div')
+  const chip   = document.querySelector(`.chipcontainer .chip[data-folder="${folderName}"]`)
+
+  if (!chip) return
+
+  const galleryIndex = 1 // matches .gallery-grid position in .content
+  tabs.forEach(tab => tab.classList.remove('active'))
+  tabs[galleryIndex].classList.add('active')
+  panels.forEach((panel, idx) => panel.classList.toggle('active', idx === galleryIndex))
+  packAllGalleryCards() // panel was hidden, so cards packed at width 0 until now
+
+  document.querySelectorAll('.chipcontainer .chip').forEach(item => item.classList.remove('active'))
+  chip.classList.add('active')
+  applyGalleryFilter()
+}
+
+function loadGalleryFolder(folderName, imageList) {
+  const gridContainer = document.querySelector('.gallery-masonry')
+  const chipContainer = document.querySelector('.chipcontainer')
+
+  if (!gridContainer || !chipContainer) return
+
+  imageList.forEach(img => {
+    const accentName = ACCENTS.includes(img.accent) ? img.accent : 'mauve'
+    const imageUrl   = URL.createObjectURL(img.file)
+    const card       = document.createElement('div')
+    
+    card.className      = 'gallery-card'
+    card.dataset.folder = folderName
+    card.style.setProperty('--accent', `var(--ctp-${accentName}-rgb)`)
+    card.innerHTML      = `<img src="${imageUrl}" alt="${img.name}">`
+
+    const image = card.querySelector('img')
+    image.addEventListener('load', () => {
+      URL.revokeObjectURL(imageUrl)
+      packGalleryCard(card)
+    })
+
+    gridContainer.appendChild(card)
+  })
+
+  const existingChip = Array.from(chipContainer.querySelectorAll('.chip'))
+    .find(chip => chip.dataset.folder === folderName)
+
+  if (!existingChip) {
+    const chip = document.createElement('button')
+    chip.className      = 'chip'
+    chip.dataset.folder = folderName
+    chip.innerHTML      = `<span>${folderName}</span>`
+    
+    chip.addEventListener('click', () => toggleFilterChip(folderName, chip))
+    chipContainer.appendChild(chip)
+  }
+
+  updateImageCount()
+}
+
+// ========================================================================== //
+// MASONRY GRID
+// ========================================================================== //
+function packGalleryCard(card) {
+  const grid  = document.querySelector('.gallery-masonry')
+  const image = card.querySelector('img')
+  if (!grid || !image || !image.naturalWidth) return
+
+  const styles   = getComputedStyle(grid)
+  const rowSize  = parseFloat(styles.getPropertyValue('grid-auto-rows'))
+  const rowGap   = parseFloat(styles.getPropertyValue('gap'))
+  const cardWidth = card.getBoundingClientRect().width
+  const height    = cardWidth * (image.naturalHeight / image.naturalWidth)
+
+  const span = Math.ceil((height + rowGap) / (rowSize + rowGap))
+  card.style.gridRowEnd = `span ${span}`
+}
+
+function packAllGalleryCards() {
+  document.querySelectorAll('.gallery-masonry .gallery-card').forEach(packGalleryCard)
+}
+
+// ========================================================================== //
+// UI INTERACTIONS
+// ========================================================================== //
+function enableHorizontalWheelScroll() {
+  const container = document.querySelector('.chipcontainer');
+  let target = container.scrollLeft;
+  let running = false;
+
+  function tick() {
+    container.scrollLeft += (target - container.scrollLeft) * 0.15;
+    if (Math.abs(target - container.scrollLeft) > 0.5) {
+      requestAnimationFrame(tick);
+    } else {
+      running = false;
+    }
+  }
+
+  container.addEventListener('wheel', (event) => {
+    if (container.scrollWidth <= container.clientWidth) return;
+    event.preventDefault();
+
+    const max = container.scrollWidth - container.clientWidth;
+    target = Math.max(0, Math.min(target + 0.5 * event.deltaY, max));
+
+    if (!running) {
+      running = true;
+      requestAnimationFrame(tick);
+    }
+  }, { passive: false });
+}
+
+function initBadgeAnimation() {
+  const badge = document.getElementById('image-count');
+  if (!badge) return;
+
+  badge.addEventListener('click', () => {
+    const rect = badge.getBoundingClientRect();
+
+    badge.classList.remove('bonk');
+    void badge.offsetWidth;
+
+    badge.style.position = 'fixed';
+    badge.style.left     = `${rect.left}px`;
+    badge.style.top      = `${rect.top}px`;
+    badge.style.margin   = '0';
+    badge.style.zIndex   = '999';
+
+    badge.classList.add('bonk');
+  });
+
+  badge.addEventListener('animationend', (event) => {
+    if (event.animationName !== 'bonk-fall') return;
+    
+    badge.classList.remove('bonk');
+    badge.style.position = '';
+    badge.style.left   = '';
+    badge.style.top    = '';
+    badge.style.margin = '';
+    badge.style.zIndex = '';
+  });
+}
+
+function toggleFilterChip(folder, chip) {
+  const chipContainer = document.querySelector('.chipcontainer')
+
+  if (folder === 'all') {
+    chipContainer.querySelectorAll('.chip:not([data-folder="all"])').forEach(item => item.classList.remove('active'))
+    chip.classList.toggle('active')
+  } else {
+    chip.classList.toggle('active')
+    chipContainer.querySelector('.chip[data-folder="all"]').classList.remove('active')
+  }
+
+  applyGalleryFilter()
+}
+
+function applyGalleryFilter() {
+  const chipContainer = document.querySelector('.chipcontainer')
+  const activeFolders  = Array.from(chipContainer.querySelectorAll('.chip.active'))
+    .map(chip => chip.dataset.folder)
+
+  let visibleCount = 0
+  document.querySelectorAll('.gallery-masonry .gallery-card').forEach(card => {
+    const show = activeFolders.includes('all') || activeFolders.includes(card.dataset.folder)
+    card.style.display = show ? 'block' : 'none'
+    if (show) visibleCount++
+  })
+
+  updateImageCount(visibleCount)
+}
+
+function updateImageCount(count) {
+  const countLabel = document.getElementById('image-count')
+  if (!countLabel) return
+
+  if (count === undefined) {
+    count = Array.from(document.querySelectorAll('.gallery-masonry .gallery-card'))
+      .filter(card => card.style.display !== 'none').length
+  }
+  
+  countLabel.textContent = `${count} Images`
+}
 
 function setupMarquee(root = document) {
   root.querySelectorAll('.folder-title').forEach(title => {
@@ -51,41 +247,47 @@ function setupMarquee(root = document) {
   })
 }
 
-
 function initNavPill() {
-	const pill = document.querySelector('.nav-pill')
-	if (!pill) return
+  const pill = document.querySelector('.nav-pill')
+  if (!pill) return
 
-	const tabs = pill.querySelectorAll('.tab')
+  const tabs   = pill.querySelectorAll('.tab')
+  const panels = document.querySelectorAll('.content > div')
 
-	tabs.forEach(function (tab) {
-		tab.addEventListener('click', function (event) {
-			event.preventDefault()
+  function showPanel(index) {
+    panels.forEach((panel, idx) => panel.classList.toggle('active', idx === index))
+    if (index === 1) packAllGalleryCards()
+  }
 
-			if (tab.classList.contains('active')) return
+  tabs.forEach((tab, index) => {
+    tab.addEventListener('click', event => {
+      event.preventDefault()
+      if (tab.classList.contains('active')) return
 
-			tabs.forEach(function (item) { item.classList.remove('active') })
-			tab.classList.add('active')
-		})
-	})
+      tabs.forEach(item => item.classList.remove('active'))
+      tab.classList.add('active')
+      showPanel(index)
+    })
+  })
+
+  const activeIndex = Array.from(tabs).findIndex(tab => tab.classList.contains('active'))
+  showPanel(activeIndex === -1 ? 0 : activeIndex)
 }
 
-
 function initSortPill() {
-	const pill    = document.querySelector('.sort-pill')
-	if (!pill) return
+  const pill = document.querySelector('.sort-pill')
+  if (!pill) return
 
-	const slider  = pill.querySelector('.sort-slider')
-	const options = pill.querySelectorAll('.sort-option')
+  const slider  = pill.querySelector('.sort-slider')
+  const options = pill.querySelectorAll('.sort-option')
 
-	function moveSlider(button) {
-		slider.style.width     = button.offsetWidth + 'px'
-		slider.style.transform = `translateX(${button.offsetLeft}px)`
-	}
+  function moveSlider(button) {
+    slider.style.width     = button.offsetWidth + 'px'
+    slider.style.transform = `translateX(${button.offsetLeft}px)`
+  }
 
   function setArrow(option, state) {
     if (option.dataset.sort === 'type') return
-
     const icon = option.querySelector('i')
     if (!icon) return
 
@@ -93,135 +295,133 @@ function initSortPill() {
     icon.classList.add(state === 'down' ? 'fa-arrow-down' : 'fa-arrow-up')
   }
 
-  options.forEach(function (option) {
-    option.addEventListener('click', function () {
+  options.forEach(option => {
+    option.addEventListener('click', () => {
       const wasActive = option.classList.contains('active')
       const saved     = option.dataset.direction
+      const direction = wasActive ? (saved === 'up' ? 'down' : 'up') : (saved || 'up')
 
-      let direction
-      if (wasActive) {
-        direction = saved === 'up' ? 'down' : 'up'
-      } else {
-        direction = saved || 'up'
-      }
-
-      options.forEach(function (item) {
+      options.forEach(item => {
         item.classList.remove('active')
-        if (item !== option) {
-          setArrow(item, item.dataset.direction || 'up')
-        }
+        if (item !== option) setArrow(item, item.dataset.direction || 'up')
       })
 
       option.classList.add('active')
       option.dataset.direction = direction
       setArrow(option, direction)
-
       moveSlider(option)
     })
   })
 
-	const active = pill.querySelector('.sort-option.active')
-	if (active) {
-		active.dataset.direction = 'up'
-		setArrow(active, 'up')
-		moveSlider(active)
-	}
+  const active = pill.querySelector('.sort-option.active')
+  if (active) {
+    active.dataset.direction = 'up'
+    setArrow(active, 'up')
+    moveSlider(active)
+  }
 
-	window.addEventListener('resize', function () {
-		const current = pill.querySelector('.sort-option.active')
-		if (current) moveSlider(current)
-	})
+  window.addEventListener('resize', () => {
+    const current = pill.querySelector('.sort-option.active')
+    if (current) moveSlider(current)
+  })
 }
 
-
-
-
-
-
-
-
-
-
-
-
-// Example by Claude:
-const palette = [
-  'rosewater', 'flamingo', 'pink', 'mauve', 'red', 'maroon',
-  'peach', 'yellow', 'green', 'teal', 'sky', 'sapphire', 'blue', 'lavender'
-]
-
-const paletteHex = {
-  rosewater: '#f5e0dc', flamingo: '#f2cdcd', pink: '#f5c2e7', mauve: '#cba6f7',
-  red: '#f38ba8', maroon: '#eba0ac', peach: '#fab387', yellow: '#f9e2af',
-  green: '#a6e3a1', teal: '#94e2d5', sky: '#89dceb', sapphire: '#74c7ec',
-  blue: '#89b4fa', lavender: '#b4befe'
+function initGalleryFilters() {
+  const allImagesChip = document.querySelector('.chip[data-folder="all"]')
+  if (allImagesChip) {
+    allImagesChip.addEventListener('click', function() {
+      toggleFilterChip('all', this)
+    })
+  }
 }
 
-function randomBetween(min, max) {
-  return Math.random() * (max - min) + min
-}
+// ========================================================================== //
+// MOCK DATA GENERATION
+// ========================================================================== //
+const MockGen = {
+  num:   (min, max) => Math.random() * (max - min) + min,
+  int:   (min, max) => Math.floor(MockGen.num(min, max)),
+  item:  (list)     => list[MockGen.int(0, list.length)],
+  
+  folderName: () => {
+    const adjectives = ['Cozy', 'Hidden', 'Forgotten', 'Sunny', 'Quiet', 'Vivid', 'Lost', 'Ancient', 'Tiny', 'Glowing']
+    const nouns      = ['Rooms', 'Archive', 'Sketches', 'Renders', 'Snapshots', 'Outtakes', 'Drafts', 'Memories', 'Backups']
+    return `${MockGen.item(adjectives)} ${MockGen.item(nouns)}`
+  },
 
-function randomItem(list) {
-  return list[Math.floor(Math.random() * list.length)]
-}
+  imageName: () => {
+    const prefixes = ['IMG', 'DSC', 'SCAN', 'RENDER', 'EXPORT']
+    return `${MockGen.item(prefixes)}_${MockGen.int(1000, 9999)}.svg`
+  },
 
-function generateRandomCover() {
-  const width  = 400
-  const height = 300
-  const bgName = randomItem(palette)
-  const shapeCount = Math.floor(randomBetween(3, 7))
+  svgImage: () => {
+    const width  = 400
+    const height = MockGen.int(200, 560)
+    const bgHex  = HEX_COLORS[MockGen.item(ACCENTS)]
+    const shapesCount = MockGen.int(3, 8)
+    
+    let shapes = ''
+    for (let i = 0; i < shapesCount; i++) {
+      const color   = HEX_COLORS[MockGen.item(ACCENTS)]
+      const opacity = MockGen.num(0.3, 0.85).toFixed(2)
+      const type    = MockGen.item(['circle', 'rect', 'poly'])
 
-  let shapes = ''
-  for (let index = 0; index < shapeCount; index++) {
-    const shapeName = randomItem(palette)
-    const shapeKind = randomItem(['circle', 'rect', 'triangle'])
-    const opacity   = randomBetween(0.3, 0.85).toFixed(2)
-
-    if (shapeKind === 'circle') {
-      const radius = randomBetween(20, 90)
-      shapes += `<circle cx="${randomBetween(0, width)}" cy="${randomBetween(0, height)}" r="${radius}" fill="${paletteHex[shapeName]}" opacity="${opacity}"/>`
-    } else if (shapeKind === 'rect') {
-      const boxSize = randomBetween(40, 140)
-      shapes += `<rect x="${randomBetween(0, width)}" y="${randomBetween(0, height)}" width="${boxSize}" height="${boxSize}" fill="${paletteHex[shapeName]}" opacity="${opacity}" transform="rotate(${randomBetween(0, 360)} ${width / 2} ${height / 2})"/>`
-    } else {
-      const pointA = `${randomBetween(0, width)},${randomBetween(0, height)}`
-      const pointB = `${randomBetween(0, width)},${randomBetween(0, height)}`
-      const pointC = `${randomBetween(0, width)},${randomBetween(0, height)}`
-      shapes += `<polygon points="${pointA} ${pointB} ${pointC}" fill="${paletteHex[shapeName]}" opacity="${opacity}"/>`
+      if (type === 'circle') {
+        shapes += `<circle cx="${MockGen.num(0, width)}" cy="${MockGen.num(0, height)}" r="${MockGen.num(20, 90)}" fill="${color}" opacity="${opacity}"/>`
+      } else if (type === 'rect') {
+        const size = MockGen.num(40, 140)
+        shapes += `<rect x="${MockGen.num(0, width)}" y="${MockGen.num(0, height)}" width="${size}" height="${size}" fill="${color}" opacity="${opacity}" transform="rotate(${MockGen.num(0, 360)} ${width/2} ${height/2})"/>`
+      } else {
+        const p1 = `${MockGen.num(0, width)},${MockGen.num(0, height)}`
+        const p2 = `${MockGen.num(0, width)},${MockGen.num(0, height)}`
+        const p3 = `${MockGen.num(0, width)},${MockGen.num(0, height)}`
+        shapes += `<polygon points="${p1} ${p2} ${p3}" fill="${color}" opacity="${opacity}"/>`
+      }
     }
+
+    const svgMarkup = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="100%" height="100%" fill="${bgHex}"/>${shapes}</svg>`
+    return new Blob([svgMarkup], { type: 'image/svg+xml' })
   }
-
-  const svgMarkup = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
-      <rect width="100%" height="100%" fill="${paletteHex[bgName]}"/>
-      ${shapes}
-    </svg>
-  `
-
-  return new Blob([svgMarkup], { type: 'image/svg+xml' })
 }
 
-function generateRandomFolderName() {
-  const adjectives = ['Cozy', 'Hidden', 'Forgotten', 'Sunny', 'Quiet', 'Vivid', 'Lost', 'Ancient', 'Tiny', 'Glowing']
-  const nouns      = ['Rooms', 'Archive', 'Sketches', 'Renders', 'Snapshots', 'Outtakes', 'Drafts', 'Memories', 'Backups', 'Scans']
-  return `${randomItem(adjectives)} ${randomItem(nouns)}`
-}
-
-function populateRandomGallery(count = 50) {
-  for (let index = 0; index < count; index++) {
+function populateMockData(folderCount = 6) {
+  for (let i = 0; i < folderCount; i++) {
+    const imageCount = MockGen.int(5, 18)
+    const folderName = `${MockGen.folderName()} ${imageCount}`
+    
     createFolderCard(
-      generateRandomFolderName(),
-      generateRandomCover(),
-      randomItem(palette),
-      Number(randomBetween(2, 600).toFixed(1)),
-      Math.floor(randomBetween(1, 400))
+      folderName,
+      MockGen.svgImage(),
+      MockGen.item(ACCENTS),
+      Number(MockGen.num(10, 500).toFixed(1)),
+      imageCount
     )
+
+    const folderImages = Array.from({ length: imageCount }, () => ({
+      name:   MockGen.imageName(),
+      file:   MockGen.svgImage(),
+      accent: MockGen.item(ACCENTS)
+    }))
+
+    loadGalleryFolder(folderName, folderImages)
   }
 }
 
-populateRandomGallery(50)
-
-initNavPill()
-initSortPill()
-setupMarquee()
-window.addEventListener('resize', () => setupMarquee())
+// ========================================================================== //
+// INIT
+// ========================================================================== //
+document.addEventListener('DOMContentLoaded', () => {
+  populateMockData(50)
+  
+  initNavPill()
+  initSortPill()
+  initGalleryFilters()
+  
+  setupMarquee()
+  initBadgeAnimation();
+  enableHorizontalWheelScroll();
+  window.addEventListener('resize', () => {
+    setupMarquee()
+    packAllGalleryCards()
+  })
+})

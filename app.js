@@ -53,7 +53,7 @@ function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
 function openFolderInGallery(folderName) {
   const tabs   = document.querySelectorAll('.nav-pill .tab')
   const panels = document.querySelectorAll('.content > div')
-  const chip   = document.querySelector(`.chipcontainer .chip[data-folder="${folderName}"]`)
+  const chip   = document.querySelector(`.chip-container .chip[data-folder="${folderName}"]`)
 
   if (!chip) return
 
@@ -63,14 +63,14 @@ function openFolderInGallery(folderName) {
   panels.forEach((panel, idx) => panel.classList.toggle('active', idx === galleryIndex))
   packAllGalleryCards()
 
-  document.querySelectorAll('.chipcontainer .chip').forEach(item => item.classList.remove('active'))
+  document.querySelectorAll('.chip-container .chip').forEach(item => item.classList.remove('active'))
   chip.classList.add('active')
   applyGalleryFilter()
 }
 
 function loadGalleryFolder(folderName, imageList) {
   const gridContainer = document.querySelector('.gallery-masonry')
-  const chipContainer = document.querySelector('.chipcontainer')
+  const chipContainer = document.querySelector('.chip-container')
 
   if (!gridContainer || !chipContainer) return
 
@@ -156,7 +156,7 @@ function initFilterPanelAutoHide() {
 }
 
 function enableChipScrollInteractions() {
-  const container = document.querySelector('.chipcontainer')
+  const container = document.querySelector('.chip-container')
   if (!container) return
 
   let target        = container.scrollLeft
@@ -247,7 +247,7 @@ function initSearchIconHover() {
 }
 
 function toggleFilterChip(folder, chip) {
-  const chipContainer = document.querySelector('.chipcontainer')
+  const chipContainer = document.querySelector('.chip-container')
 
   if (folder === 'all') {
     chipContainer.querySelectorAll('.chip:not([data-folder="all"])').forEach(item => item.classList.remove('active'))
@@ -261,7 +261,7 @@ function toggleFilterChip(folder, chip) {
 }
 
 function applyGalleryFilter() {
-  const chipContainer = document.querySelector('.chipcontainer')
+  const chipContainer = document.querySelector('.chip-container')
   const activeFolders  = Array.from(chipContainer.querySelectorAll('.chip.active'))
     .map(chip => chip.dataset.folder)
 

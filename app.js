@@ -57,11 +57,11 @@ function openFolderInGallery(folderName) {
 
   if (!chip) return
 
-  const galleryIndex = 1 // matches .gallery-grid position in .content
+  const galleryIndex = 1
   tabs.forEach(tab => tab.classList.remove('active'))
   tabs[galleryIndex].classList.add('active')
   panels.forEach((panel, idx) => panel.classList.toggle('active', idx === galleryIndex))
-  packAllGalleryCards() // panel was hidden, so cards packed at width 0 until now
+  packAllGalleryCards()
 
   document.querySelectorAll('.chipcontainer .chip').forEach(item => item.classList.remove('active'))
   chip.classList.add('active')
@@ -117,9 +117,9 @@ function packGalleryCard(card) {
   const image = card.querySelector('img')
   if (!grid || !image || !image.naturalWidth) return
 
-  const styles   = getComputedStyle(grid)
-  const rowSize  = parseFloat(styles.getPropertyValue('grid-auto-rows'))
-  const rowGap   = parseFloat(styles.getPropertyValue('gap'))
+  const styles    = getComputedStyle(grid)
+  const rowSize   = parseFloat(styles.getPropertyValue('grid-auto-rows'))
+  const rowGap    = parseFloat(styles.getPropertyValue('gap'))
   const cardWidth = card.getBoundingClientRect().width
   const height    = cardWidth * (image.naturalHeight / image.naturalWidth)
 
@@ -134,63 +134,116 @@ function packAllGalleryCards() {
 // ========================================================================== //
 // UI INTERACTIONS
 // ========================================================================== //
-function enableHorizontalWheelScroll() {
-  const container = document.querySelector('.chipcontainer');
-  let target = container.scrollLeft;
-  let running = false;
+function initFilterPanelAutoHide() {
+	const contentEl   = document.querySelector('.content')
+	const filterPanel = document.querySelector('.filter-panel')
+	let lastScrollY   = contentEl.scrollTop
 
-  function tick() {
-    container.scrollLeft += (target - container.scrollLeft) * 0.15;
-    if (Math.abs(target - container.scrollLeft) > 0.5) {
-      requestAnimationFrame(tick);
+	contentEl.addEventListener('scroll', () => {
+		const currentY = contentEl.scrollTop
+		const delta    = currentY - lastScrollY
+
+		if (currentY < 50) {
+			filterPanel.classList.remove('hidden')
+		} else if (delta > 5) {
+			filterPanel.classList.add('hidden')
+		} else if (delta < -5) {
+			filterPanel.classList.remove('hidden')
+		}
+
+		lastScrollY = currentY
+	}, { passive: true })
+}
+
+function enableChipScrollInteractions() {
+  const container = document.querySelector('.chipcontainer')
+  if (!container) return
+
+  let target        = container.scrollLeft
+  let animationId   = 0
+  let isDown        = false
+  let didDrag       = false
+  let suppressClick = false
+  let startX        = 0
+  let startScroll   = 0
+
+  const tick = () => {
+    const delta = target - container.scrollLeft
+    if (Math.abs(delta) > 0.5) {
+      container.scrollLeft += delta * 0.15
+      animationId = requestAnimationFrame(tick)
     } else {
-      running = false;
+      container.scrollLeft = target
+      animationId = 0
     }
   }
 
   container.addEventListener('wheel', (event) => {
-    if (container.scrollWidth <= container.clientWidth) return;
-    event.preventDefault();
+    if (isDown || container.scrollWidth <= container.clientWidth) return
+    if (!animationId) target             = container.scrollLeft
+    event.preventDefault()
 
-    const max = container.scrollWidth - container.clientWidth;
-    target = Math.max(0, Math.min(target + 0.5 * event.deltaY, max));
+    const max = container.scrollWidth - container.clientWidth
+    target = Math.max(0, Math.min(target + 0.5 * event.deltaY, max))
+    if (!animationId) animationId = requestAnimationFrame(tick)
+  }, { passive: false })
 
-    if (!running) {
-      running = true;
-      requestAnimationFrame(tick);
+  container.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return
+    if (animationId) cancelAnimationFrame(animationId), animationId = 0
+
+    isDown        = true
+    didDrag       = false
+    suppressClick = false
+    startX        = event.clientX
+    startScroll   = container.scrollLeft
+    target        = startScroll
+    container.classList.add('dragging')
+  })
+
+  window.addEventListener('pointermove', (event) => {
+    if (!isDown) return
+    const delta = event.clientX - startX
+    if (Math.abs(delta) > 5) didDrag = true
+
+    const max = container.scrollWidth - container.clientWidth
+    container.scrollLeft = Math.max(0, Math.min(startScroll - delta, max))
+  })
+
+  const endDrag = () => {
+    if (!isDown) return
+    isDown = false
+    container.classList.remove('dragging')
+    target = container.scrollLeft
+
+    if (didDrag) {
+      suppressClick = true
     }
-  }, { passive: false });
+  }
+
+  window.addEventListener('pointerup',     endDrag)
+  window.addEventListener('pointercancel', endDrag)
+
+  container.addEventListener('click', (event) => {
+    if (didDrag || suppressClick) {
+      event.preventDefault()
+      event.stopPropagation()
+      suppressClick = false
+      didDrag       = false
+    }
+  }, { capture: true })
 }
 
-function initBadgeAnimation() {
-  const badge = document.getElementById('image-count');
-  if (!badge) return;
+function initSearchIconHover() {
+  const icon = document.querySelector('.search-pill .fa-search')
+  if (!icon) return
 
-  badge.addEventListener('click', () => {
-    const rect = badge.getBoundingClientRect();
-
-    badge.classList.remove('bonk');
-    void badge.offsetWidth;
-
-    badge.style.position = 'fixed';
-    badge.style.left     = `${rect.left}px`;
-    badge.style.top      = `${rect.top}px`;
-    badge.style.margin   = '0';
-    badge.style.zIndex   = '999';
-
-    badge.classList.add('bonk');
-  });
-
-  badge.addEventListener('animationend', (event) => {
-    if (event.animationName !== 'bonk-fall') return;
-    
-    badge.classList.remove('bonk');
-    badge.style.position = '';
-    badge.style.left   = '';
-    badge.style.top    = '';
-    badge.style.margin = '';
-    badge.style.zIndex = '';
-  });
+  'mouseenter, click'.split(',').forEach(event => {
+    icon.addEventListener(event.trim(), () => {
+      const accentName = ACCENTS[Math.floor(Math.random() * ACCENTS.length)]
+      icon.style.color = `rgb(var(--ctp-${accentName}-rgb))`
+    })
+  })
 }
 
 function toggleFilterChip(folder, chip) {
@@ -412,14 +465,15 @@ function populateMockData(folderCount = 6) {
 // ========================================================================== //
 document.addEventListener('DOMContentLoaded', () => {
   populateMockData(50)
-  
+
+  initFilterPanelAutoHide()
   initNavPill()
   initSortPill()
   initGalleryFilters()
+  initSearchIconHover()
   
   setupMarquee()
-  initBadgeAnimation();
-  enableHorizontalWheelScroll();
+  enableChipScrollInteractions();
   window.addEventListener('resize', () => {
     setupMarquee()
     packAllGalleryCards()

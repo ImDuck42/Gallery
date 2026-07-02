@@ -160,8 +160,20 @@ header {
   gap:              10px;
 
   i {
-    color:     rgb(var(--ctp-mauve-rgb));
-    font-size: 1.25rem;
+    color:      rgb(var(--ctp-mauve-rgb));
+    font-size:  1.25rem;
+    transition: transform 0.15s ease;
+
+    &.fa-search {
+      &:hover {
+        transform: scale(1.1);
+        cursor:    pointer;
+      }
+
+      &:active {
+        transform: scale(1);
+      }
+    }
   }
 
   input {
@@ -182,14 +194,20 @@ header {
     transition:       transform 0.15s ease;
     height:           100%;
 
+    &:hover {
+      transform: scale(1.05);
+    }
     &:active {
       transform: scale(0.95) translateX(10px);
     }
   }
 
   &:hover {
-    cursor:       text;
     border-color: rgb(var(--ctp-overlay0-rgb));
+
+    input {
+      cursor: text;
+    }
   }
 
   &:focus-within {
@@ -348,7 +366,7 @@ header {
       color: rgb(var(--accent));
 
       &.marquee > span {
-        animation: marquee-loop 10s linear infinite;
+        animation: marquee-loop 5s linear infinite; /* Test -- better for just too long names */
       }
     }
 
@@ -383,9 +401,22 @@ header {
 /* =============== GALLERY GRID =============== */
 .gallery-grid {
   .filter-panel {
-    display: flex;
-    padding: 10px 15px;
-    gap:     10px;
+    position:   sticky;
+    display:    flex;
+    top:        0;
+    z-index:    1; /* Prevent image hover chip obstruction */
+    padding:    10px 15px;
+    gap:        10px;
+    background: linear-gradient(
+                180deg, 
+                rgb(var(--ctp-mantle-rgb)) 90%,
+                rgba(var(--ctp-mantle-rgb), 0) 100%
+                );    
+    transition: transform 0.25s ease;
+
+    &.hidden {
+      transform: translateY(-100%);
+    }
 
     .chipcontainer {
       display:         flex;
@@ -398,6 +429,12 @@ header {
         display: none;
       }
 
+      mask-image: linear-gradient( /* Smooth BG transition left of the image-count */
+                  to right,
+                  rgb(var(--ctp-mantle-rgb))     99.75%, /* Don't affect last chip */
+                  rgba(var(--ctp-mantle-rgb), 0) 100%
+                  );
+
       .chip {
         background-color: rgb(var(--ctp-surface0-rgb));
         color:            rgb(var(--ctp-subtext0-rgb));
@@ -409,6 +446,14 @@ header {
         transition:       all 0.2s ease;
         display:          inline-block;
         transform:        skewX(-20deg);
+
+        &[data-folder="all"] {
+          border-color: rgba(var(--ctp-mauve-rgb), 0.75);
+
+          &:hover {
+            border-color: rgb(var(--ctp-mauve-rgb));
+          }
+        }
 
         & > span {
           display:   inline-block;
@@ -443,13 +488,13 @@ header {
       flex-shrink:      0;
       transition:       transform 0.15s ease-out;
 
-      &.bonk {
-        animation: bonk-fall 1s 1;
+      &:hover {
+        transform: scaleX(1.05);
+        cursor:    pointer;
       }
 
-      &:hover {
-        transform: translateX(6px) scaleX(0.9); /* Match up x-movement with squish */
-        cursor:    pointer;
+      &:active {
+        transform: scaleX(0.95) scaleY(1.05);
       }
     }
   }
@@ -502,54 +547,4 @@ header {
   10%  { transform: translateX(0); }
   90%  { transform: translateX(calc(-100% + var(--marquee-room))); }
   100% { transform: translateX(calc(-100% + var(--marquee-room))); }
-}
-
-@keyframes bonk-fall {
-  0% {
-    transform:                 translate(0, 0) rotate(0) scale(1, 1);
-    animation-timing-function: ease-in;
-  }
-  12% {
-    transform:                 translate(-28px, 0) rotate(0) scale(1, 1);
-    animation-timing-function: ease-in-out;
-  }
-  30% {
-    transform:                 translate(-110px, 0) rotate(0) scale(1, 1);
-    animation-timing-function: ease-out;
-  }
-  40% {
-    transform:                 translate(-98px, 22px) rotate(0) scale(1.45, 0.55);
-    animation-timing-function: ease-in-out;
-  }
-  50% {
-    transform:                 translate(-50px, -20px) rotate(-5deg) scale(0.65, 1.55);
-    animation-timing-function: ease-out;
-  }
-  62% {
-    transform:                 translate(10px, -80px) rotate(8deg) scale(0.85, 1.22);
-    animation-timing-function: ease-out;
-  }
-  70% {
-    transform:                 translate(48px, -102px) rotate(14deg) scale(1, 1);
-    animation-timing-function: ease-in;
-  }
-  75% {
-    transform: translate(64px, -104px) rotate(18deg) scale(0.2, 1.5);
-    animation-timing-function: cubic-bezier(0.33, 1, 0.68, 1);
-  }
-  82% {
-    transform:                 translate(28px, -94px) rotate(-24deg) scale(1.25, 0.7);
-    animation-timing-function: ease-in;
-  }
-  93% {
-    transform:                 translate(6px, -22px) rotate(30deg) scale(1, 1);
-    animation-timing-function: ease-in-out;
-  }
-  97% {
-    transform:                 translate(0, 6px) rotate(4deg) scale(1.4, 0.6);
-    animation-timing-function: ease-out;
-  }
-  100% {
-    transform: translate(0, 0) rotate(0) scale(1, 1);
-  }
 }

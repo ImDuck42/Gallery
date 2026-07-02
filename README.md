@@ -10,3 +10,4 @@ add filecount badge to interactive elements (make every single element on site i
 
 # Preview:
 ![Preview](./assets/image.png)
+![PreviewToo](./assets/imageToo.png)

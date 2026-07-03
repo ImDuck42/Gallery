@@ -168,13 +168,13 @@ function initFullScreenModal() {
 
     const img = card.querySelector('img')
     if (img) {
-      modalImg.src = img.src
-      modalImg.alt = img.alt
-      applyScaling()
+      modalImg.onload = applyScaling
+      modalImg.src    = img.src
+      modalImg.alt    = img.alt
+      
       setTimeout(() => {
         modal.classList.add('active')
       }, 75) // let animation play out
-
     }
   })
 

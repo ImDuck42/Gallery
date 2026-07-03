@@ -47,6 +47,16 @@ html, body {
   margin:          0;
   height:          100%;
   scrollbar-color: rgb(var(--ctp-mauve-rgb)) rgb(var(--ctp-mantle-rgb));
+  
+  /* Combat interaction inconveniences */
+  user-select:                 none;
+  -webkit-user-select:         none;
+  -webkit-tap-highlight-color: transparent;
+
+  input {
+    user-select:         text;
+    -webkit-user-select: text;
+  }
 }
 
 body {
@@ -552,7 +562,7 @@ header {
 .full-screen {
   position:         fixed;
   inset:            0;
-  padding:          10px; /* Mach .container padding */
+  padding:          10px; /* Mach .container margin */
   background-color: rgba(var(--ctp-crust-rgb), 0.95);
   backdrop-filter:  blur(10px);
   z-index:          1;
@@ -584,15 +594,6 @@ header {
     }
   }
 }
-
-
-
-
-
-
-
-
-
 
 
 

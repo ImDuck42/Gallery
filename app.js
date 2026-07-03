@@ -34,7 +34,7 @@ function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
     </div>
     <div class="folder-body">
       <div class="folder-preview">
-        <img src="${imageUrl}" alt="${name} Preview" onload="URL.revokeObjectURL('${imageUrl}')">
+        <img src="${imageUrl}" alt="${name} Preview">
       </div>
       <div class="folder-info">
         <h3 class="folder-title">
@@ -83,18 +83,13 @@ function loadGalleryFolder(folderName, imageList) {
     const imageUrl   = URL.createObjectURL(img.file)
     const card       = document.createElement('div')
     
-    card.className      = 'gallery-card'
     card.dataset.folder = folderName
-    card.style.setProperty('--accent', `var(--ctp-${accentName}-rgb)`)
+    card.className      = 'gallery-card'
     card.innerHTML      = `<img src="${imageUrl}" alt="${img.name}">`
-
-    card.addEventListener('click', () => {
-      openFullScreen(imageUrl, img.name);
-    });
+    card.style.setProperty('--accent', `var(--ctp-${accentName}-rgb)`)
 
     const image = card.querySelector('img')
     image.addEventListener('load', () => {
-      URL.revokeObjectURL(imageUrl)
       packGalleryCard(card)
     })
 

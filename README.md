@@ -1,13 +1,27 @@
 # ToDo:
-top in top right thats darker and on click gets --accent color -- folder likes  
-fix sort icons they look off  
-make nav pill look not bland  
-add nice website scroll bar  
-
-Implement Gallery and Settings tab  
-On search icon hover change its color to a random accent one
-add filecount badge to interactive elements (make every single element on site interactable)
+- [ _ ] Fix the sort icons that currently look off
+- [ _ ] Style the navigation pills so they do not look bland
+- [ _ ] Add a nice custom scrollbar to the website
+- [ _ ] Implement the Gallery and Settings tabs:
+    - [ _ ] Gallery tab -- missing fullscreen viewer
+    - [ _ ] Settings tab -- completely missing 
+- [ X ] Change the search icon color to a random accent color on hover
+- [ X ] Add a file count badge to interactive elements:
+    - [ X ] Make every single element on the site interactable
+- [ _ ] Set the image hover border color to match the color of its folder
+- [ _ ] Add image controls:
+    - [ _ ] Next and previous buttons
+    - [ _ ] Slideshow mode (with milliseconds per image setting)
+    - [ _ ] Copy image option
+- [ _ ] Display a drawer when hovering over the bottom edge:
+    - [ _ ] Slide up a small drawer with a right-to-left list of previous and next images
+    - [ _ ] Allow the list to be scrolled or dragged
+- [ _ ] Implement alternative navigation inputs:
+    - [ _ ] Scroll on the image to go next or previous
+    - [ _ ] Use the arrow keys to go next or previous
+    - [ _ ] Tap the left or right edge of the screen to go next or previous
 
 # Preview:
 ![Preview](./assets/image.png)
 ![PreviewToo](./assets/imageToo.png)
+![PreviewTree](./assets/imageTree.png)

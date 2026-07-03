@@ -548,6 +548,55 @@ header {
   }
 }
 
+/* =============== FULLSCREEN IMAGES =============== */
+.full-screen {
+  position:         fixed;
+  inset:            0;
+  padding:          10px; /* Mach .container padding */
+  background-color: rgba(var(--ctp-crust-rgb), 0.95);
+  backdrop-filter:  blur(10px);
+  z-index:          1;
+  display:          flex;
+  justify-content:  center;
+  align-items:      center;
+  opacity:          0;
+  pointer-events:   none;
+  transition:       opacity 0.2s ease;
+
+  &.active {
+    opacity:        1;
+    pointer-events: auto;
+
+    .full-screen-img {
+      transform: scale(1);
+    }
+  }
+
+  .full-screen-img {    
+    border-radius: 18px;
+    box-shadow:    10px 10px 10px rgb(var(--ctp-crust-rgb));
+    transition:    transform 0.3s cubic-bezier(0.35, 1.50, 0.65, 1);
+    transform:     scale(0.9);
+    cursor:        pointer;
+
+    &:active {
+      transform: scale(0.995) translateY(2px); /* Match y-change with size change */
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* =============== Animations =============== */
 @keyframes marquee-loop {
   0%   { transform: translateX(0); }

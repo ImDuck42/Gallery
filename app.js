@@ -45,7 +45,11 @@ function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
     </div>
   `
 
-  card.addEventListener('click', () => openFolderInGallery(name))
+  card.addEventListener('click', () => {
+    setTimeout(() => {
+      openFolderInGallery(name)
+    }, 100) // let animation play out
+  })
 
   gridContainer.appendChild(card)
 }
@@ -83,6 +87,10 @@ function loadGalleryFolder(folderName, imageList) {
     card.dataset.folder = folderName
     card.style.setProperty('--accent', `var(--ctp-${accentName}-rgb)`)
     card.innerHTML      = `<img src="${imageUrl}" alt="${img.name}">`
+
+    card.addEventListener('click', () => {
+      openFullScreen(imageUrl, img.name);
+    });
 
     const image = card.querySelector('img')
     image.addEventListener('load', () => {
@@ -134,6 +142,59 @@ function packAllGalleryCards() {
 // ========================================================================== //
 // UI INTERACTIONS
 // ========================================================================== //
+function initFullScreenModal() {
+  const modal    = document.querySelector('.full-screen')
+  const modalImg = modal?.querySelector('.full-screen-img')
+  const gallery  = document.querySelector('.gallery-masonry')
+  
+  if (!modal || !modalImg || !gallery) return
+
+  const applyScaling = () => {
+    const imgRatio  = modalImg.naturalWidth / modalImg.naturalHeight
+    const viewRatio = window.innerWidth     / window.innerHeight
+
+    if (imgRatio > viewRatio) {
+      modalImg.style.width  = '100%'
+      modalImg.style.height = 'auto'
+    } else {
+      modalImg.style.height = '100%'
+      modalImg.style.width  = 'auto'
+    }
+  }
+
+  gallery.addEventListener('click', (event) => {
+    const card = event.target.closest('.gallery-card')
+    if (!card) return
+
+    const img = card.querySelector('img')
+    if (img) {
+      modalImg.src = img.src
+      modalImg.alt = img.alt
+      applyScaling()
+      setTimeout(() => {
+        modal.classList.add('active')
+      }, 75) // let animation play out
+
+    }
+  })
+
+  const closeModal = () => {
+    modal.classList.remove('active') 
+  }
+
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      closeModal()
+    }
+  })
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal.classList.contains('active')) {
+      closeModal()
+    }
+  })
+}
+
 function initFilterPanelAutoHide() {
 	const contentEl   = document.querySelector('.content')
 	const filterPanel = document.querySelector('.filter-panel')
@@ -409,7 +470,7 @@ const MockGen = {
 
   svgImage: () => {
     const width  = 400
-    const height = MockGen.int(200, 560)
+    const height = MockGen.int(100, 560)
     const bgHex  = HEX_COLORS[MockGen.item(ACCENTS)]
     const shapesCount = MockGen.int(3, 8)
     
@@ -432,7 +493,20 @@ const MockGen = {
       }
     }
 
-    const svgMarkup = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}"><rect width="100%" height="100%" fill="${bgHex}"/>${shapes}</svg>`
+    const svgMarkup = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+        <defs>
+          <clipPath id="canvas-clip">
+            <rect width="${width}" height="${height}" />
+          </clipPath>
+        </defs>
+        <rect width="100%" height="100%" fill="${bgHex}"/>
+        <g clip-path="url(#canvas-clip)">
+          ${shapes}
+        </g>
+      </svg>
+    `.trim()
+
     return new Blob([svgMarkup], { type: 'image/svg+xml' })
   }
 }
@@ -471,6 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSortPill()
   initGalleryFilters()
   initSearchIconHover()
+  initFullScreenModal()
   
   setupMarquee()
   enableChipScrollInteractions();

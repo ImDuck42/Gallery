@@ -1,14 +1,14 @@
 # ToDo:
 - [ _ ] Fix the sort icons that currently look off
 - [ _ ] Style the navigation pills so they do not look bland
-- [ _ ] Add a nice custom scrollbar to the website
-- [ _ ] Implement the Gallery and Settings tabs:
-    - [ _ ] Gallery tab -- missing fullscreen viewer
-    - [ _ ] Settings tab -- completely missing 
+- [ X ] Add a nice custom scrollbar to the website
+- [ X ] Implement the Gallery and Settings tabs:
+    - [ X ] Gallery tab
+    - [ X ] Settings tab -- no content 
 - [ X ] Change the search icon color to a random accent color on hover
 - [ X ] Add a file count badge to interactive elements:
     - [ X ] Make every single element on the site interactable
-- [ _ ] Set the image hover border color to match the color of its folder
+- [ X ] Set the image hover border color to match the color of its folder
 - [ _ ] Add image controls:
     - [ _ ] Next and previous buttons
     - [ _ ] Slideshow mode (with milliseconds per image setting)
@@ -20,6 +20,11 @@
     - [ _ ] Scroll on the image to go next or previous
     - [ _ ] Use the arrow keys to go next or previous
     - [ _ ] Tap the left or right edge of the screen to go next or previous
+
+# Ho To ???
+- Put the **server.py** in the **root** images **folder** and run:
+- Run: **python ./server.py**
+- Refresh the website
 
 # Preview:
 ![Preview](./assets/image.png)

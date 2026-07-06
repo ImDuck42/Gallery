@@ -50,12 +50,10 @@ html, body {
   
   /* Combat interaction inconveniences */
   user-select:                 none;
-  -webkit-user-select:         none;
   -webkit-tap-highlight-color: transparent;
 
   input {
-    user-select:         text;
-    -webkit-user-select: text;
+    user-select: text;
   }
 }
 
@@ -420,7 +418,7 @@ header {
     display:    flex;
     top:        0;
     z-index:    1; /* Prevent image hover chip obstruction */
-    padding:    10px 15px;
+    padding:    15px;
     gap:        10px;
     background: linear-gradient(
                 180deg, 
@@ -435,6 +433,7 @@ header {
 
     .chip-container {
       display:         flex;
+      flex:            auto; /* Keep mask-image of chip on the very right */
       gap:             10px;
       padding-left:    7px;  /* Fix bottom left clipp */
       overflow-x:      auto;
@@ -495,7 +494,7 @@ header {
       }
     }
 
-    #image-count {
+    .image-count {
       color:            rgb(var(--ctp-text-rgb));
       background-color: rgb(var(--ctp-surface0-rgb));
       border:           3px solid rgb(var(--ctp-mauve-rgb));
@@ -503,15 +502,16 @@ header {
       padding:          6px 14px;
       border-radius:    10px;
       flex-shrink:      0;
+      margin-left:      auto;
       transition:       transform 0.15s ease-out;
 
       &:hover {
-        transform: scaleX(1.05);
+        transform: scaleX(0.95) scaleY(1.05);
         cursor:    pointer;
       }
 
       &:active {
-        transform: scaleX(0.95) scaleY(1.05);
+        transform: scaleX(1.05);
       }
     }
   }
@@ -595,8 +595,12 @@ header {
   }
 }
 
-
-
+/* =============== SETTINGS PAGE =============== */
+.notice {
+  color:      rgb(var(--ctp-lavender-rgb));
+  font-size:  6rem;
+  text-align: center;
+}
 
 /* =============== Animations =============== */
 @keyframes marquee-loop {

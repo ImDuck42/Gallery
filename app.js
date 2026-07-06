@@ -1,32 +1,91 @@
-// ========================================================================== //
-// CONFIGURATION
-// ========================================================================== //
-const ACCENTS = [
+// ==================================================================================================== //
+// CONFIGURATION & STATE
+// ==================================================================================================== //
+const ACCENT_NAMES = [
   'rosewater', 'flamingo', 'pink', 'mauve', 'red', 'maroon',
-  'peach', 'yellow', 'green', 'teal', 'sky', 'sapphire', 'blue', 'lavender'
+  'peach', 'yellow', 'green', 'teal', 'sky', 'sapphire', 'blue', 'lavender',
 ]
 
-const HEX_COLORS = {
+const ACCENT_HEX_COLORS = {
   rosewater: '#f5e0dc', flamingo: '#f2cdcd', pink: '#f5c2e7', mauve: '#cba6f7',
   red: '#f38ba8', maroon: '#eba0ac', peach: '#fab387', yellow: '#f9e2af',
   green: '#a6e3a1', teal: '#94e2d5', sky: '#89dceb', sapphire: '#74c7ec',
-  blue: '#89b4fa', lavender: '#b4befe'
+  blue: '#89b4fa', lavender: '#b4befe',
 }
 
-// ========================================================================== //
-// DOM FUNCTIONS
-// ========================================================================== //
-function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
-  if (!ACCENTS.includes(accentName)) accentName = 'mauve'
+// Selector map
+const SELECTORS = {
+  folderGrid:      '.folder-grid',
+  galleryMasonry:  '.gallery-masonry',
+  chipContainer:   '.chip-container',
+  fullScreenModal: '.full-screen',
+  fullScreenImage: '.full-screen-img',
+  contentPanel:    '.content',
+  contentSections: '.content > div',
+  filterPanel:     '.filter-panel',
+  navPill:         '.nav-pill',
+  navTab:          '.tab',
+  sortPill:        '.sort-pill',
+  sortSlider:      '.sort-slider',
+  sortOption:      '.sort-option',
+  searchIcon:      '.search-pill .fa-search',
+  searchInput:     '.search-input',
+  searchSubmit:    '.search-submit',
+  imageCountLabel: '.image-count',
+  folderTitle:     '.folder-title',
+}
 
-  const gridContainer = document.querySelector('.folder-grid')
+/**
+ * Dataset schema used by folder cards and gallery cards so that
+ * applyCurrentSort() and applyActiveFilters() can read them:
+ *   data-name        -> sortable/searchable label (folder name, or image name)
+ *   data-size        -> size in MB/bytes, used for size sorting
+ *   data-date        -> synthetic creation timestamp, used for date sorting
+ *   data-type        -> 'folder' or file extension, used for type sorting
+ *   data-folder-name -> (gallery cards only) the folder an image belongs to
+ */
+const GALLERY_SERVER_URL = 'http://localhost:4269'
+
+let activeFolderFilters = ['all']
+let currentSearchQuery  = ''
+let currentSort         = { key: 'name', direction: 'up' }
+let cardSequenceNumber  = 0
+
+let   allGalleryImages = []
+let   filteredImages   = []
+let   renderIndex      = 0
+const BATCH_SIZE       = 100
+
+// ==================================================================================================== //
+// HELPERS
+// ==================================================================================================== //
+function pickValidAccent(accentName) {
+  return ACCENT_NAMES.includes(accentName) ? accentName : 'mauve'
+}
+
+function applyAccentColor(card, accentName) {
+  card.style.setProperty('--accent', `var(--ctp-${pickValidAccent(accentName)}-rgb)`)
+}
+
+function nextCardTimestamp() {
+  cardSequenceNumber += 1
+  return Date.now() - cardSequenceNumber * 1000
+}
+
+// ==================================================================================================== //
+// DOM FUNCTIONS
+// ==================================================================================================== //
+function createFolderCard(folderName, previewUrl, accentName, sizeInMB, fileCount) {
+  const gridContainer = document.querySelector(SELECTORS.folderGrid)
   if (!gridContainer) return
 
-  const imageUrl = URL.createObjectURL(previewImage)
-  const card     = document.createElement('div')
-  
-  card.className = 'folder-card'
-  card.style.setProperty('--accent', `var(--ctp-${accentName}-rgb)`)
+  const card        = document.createElement('div')
+  card.className    = 'folder-card'
+  card.dataset.name = folderName
+  card.dataset.size = sizeInMB
+  card.dataset.date = nextCardTimestamp()
+  card.dataset.type = 'folder'
+  applyAccentColor(card, accentName)
 
   card.innerHTML = `
     <div class="folder-tab">
@@ -34,321 +93,408 @@ function createFolderCard(name, previewImage, accentName, sizeMB, fileCount) {
     </div>
     <div class="folder-body">
       <div class="folder-preview">
-        <img src="${imageUrl}" alt="${name} Preview">
+        <img loading="lazy" decoding="async" src="${previewUrl}" alt="${folderName} Preview">
       </div>
       <div class="folder-info">
         <h3 class="folder-title">
-          <span>${name}</span>
+          <span>${folderName}</span>
         </h3>
-        <span class="folder-size">${sizeMB} MB</span>
+        <span class="folder-size">${sizeInMB} MB</span>
       </div>
     </div>
   `
 
   card.addEventListener('click', () => {
-    setTimeout(() => {
-      openFolderInGallery(name)
-    }, 100) // let animation play out
+    setTimeout(() => openFolderInGallery(folderName), 100) // let animation play out
   })
 
   gridContainer.appendChild(card)
 }
 
 function openFolderInGallery(folderName) {
-  const tabs   = document.querySelectorAll('.nav-pill .tab')
-  const panels = document.querySelectorAll('.content > div')
-  const chip   = document.querySelector(`.chip-container .chip[data-folder="${folderName}"]`)
-
+  const tabs   = document.querySelectorAll(`${SELECTORS.navPill} ${SELECTORS.navTab}`)
+  const panels = document.querySelectorAll(SELECTORS.contentSections)
+  const chip   = document.querySelector(`${SELECTORS.chipContainer} .chip[data-folder="${folderName}"]`)
   if (!chip) return
 
-  const galleryIndex = 1
-  tabs.forEach(tab => tab.classList.remove('active'))
-  tabs[galleryIndex].classList.add('active')
-  panels.forEach((panel, idx) => panel.classList.toggle('active', idx === galleryIndex))
+  const galleryPanelIndex = 1
+  tabs.forEach((tab) => tab.classList.remove('active'))
+  tabs[galleryPanelIndex].classList.add('active')
+  panels.forEach((panel, panelIndex) => panel.classList.toggle('active', panelIndex === galleryPanelIndex))
+
+  const searchInput = document.querySelector(SELECTORS.searchInput)
+  if (searchInput) searchInput.value = ''
+  currentSearchQuery = ''
+
   packAllGalleryCards()
 
-  document.querySelectorAll('.chip-container .chip').forEach(item => item.classList.remove('active'))
+  document.querySelectorAll(`${SELECTORS.chipContainer} .chip`).forEach((item) => item.classList.remove('active'))
   chip.classList.add('active')
-  applyGalleryFilter()
+  setActiveFolderFilter(folderName)
 }
 
-function loadGalleryFolder(folderName, imageList) {
-  const gridContainer = document.querySelector('.gallery-masonry')
-  const chipContainer = document.querySelector('.chip-container')
+function renderNextBatch() {
+  const gridContainer = document.querySelector(SELECTORS.galleryMasonry)
+  if (!gridContainer || renderIndex >= filteredImages.length) return
 
-  if (!gridContainer || !chipContainer) return
+  const fragment = document.createDocumentFragment()
+  const end = Math.min(renderIndex + BATCH_SIZE, filteredImages.length)
 
-  imageList.forEach(img => {
-    const accentName = ACCENTS.includes(img.accent) ? img.accent : 'mauve'
-    const imageUrl   = URL.createObjectURL(img.file)
-    const card       = document.createElement('div')
-    
-    card.dataset.folder = folderName
-    card.className      = 'gallery-card'
-    card.innerHTML      = `<img src="${imageUrl}" alt="${img.name}">`
-    card.style.setProperty('--accent', `var(--ctp-${accentName}-rgb)`)
+  for (let index = renderIndex; index < end; index++) {
+    const img  = filteredImages[index]
+    const card = document.createElement('div')
 
-    const image = card.querySelector('img')
-    image.addEventListener('load', () => {
-      packGalleryCard(card)
-    })
+    card.className                  = 'gallery-card'
+    card.dataset.folderName         = img.folderName
+    card.dataset.name               = img.name
+    card.dataset.size               = img.size
+    card.dataset.date               = img.date
+    card.dataset.type               = img.type
+    card.style.contentVisibility    = 'auto'
+    card.style.containIntrinsicSize = '200px 300px'
+    card.innerHTML                  = `<img loading="lazy" decoding="async" src="${img.url}" alt="${img.name}">`
+    applyAccentColor(card, img.accent)
 
-    gridContainer.appendChild(card)
-  })
+    const imageElement = card.querySelector('img')
+    imageElement.addEventListener('load', () => packGalleryCard(card))
 
-  const existingChip = Array.from(chipContainer.querySelectorAll('.chip'))
-    .find(chip => chip.dataset.folder === folderName)
-
-  if (!existingChip) {
-    const chip = document.createElement('button')
-    chip.className      = 'chip'
-    chip.dataset.folder = folderName
-    chip.innerHTML      = `<span>${folderName}</span>`
-    
-    chip.addEventListener('click', () => toggleFilterChip(folderName, chip))
-    chipContainer.appendChild(chip)
+    fragment.appendChild(card)
   }
 
-  updateImageCount()
+  gridContainer.appendChild(fragment)
+  renderIndex = end
 }
 
-// ========================================================================== //
+function initInfiniteScroll() {
+  const contentPanel = document.querySelector(SELECTORS.contentPanel)
+  if (!contentPanel) return
+
+  contentPanel.addEventListener('scroll', () => {
+    const isNearBottom = contentPanel.scrollHeight - contentPanel.scrollTop - contentPanel.clientHeight < 800
+    if (isNearBottom) {
+      requestAnimationFrame(() => renderNextBatch())
+    }
+  }, { passive: true })
+}
+
+// ==================================================================================================== //
 // MASONRY GRID
-// ========================================================================== //
+// ==================================================================================================== //
 function packGalleryCard(card) {
-  const grid  = document.querySelector('.gallery-masonry')
+  const grid = document.querySelector(SELECTORS.galleryMasonry)
   const image = card.querySelector('img')
   if (!grid || !image || !image.naturalWidth) return
 
-  const styles    = getComputedStyle(grid)
-  const rowSize   = parseFloat(styles.getPropertyValue('grid-auto-rows'))
-  const rowGap    = parseFloat(styles.getPropertyValue('gap'))
-  const cardWidth = card.getBoundingClientRect().width
-  const height    = cardWidth * (image.naturalHeight / image.naturalWidth)
+  const gridStyles   = getComputedStyle(grid)
+  const rowHeight    = parseFloat(gridStyles.getPropertyValue('grid-auto-rows'))
+  const rowGap       = parseFloat(gridStyles.getPropertyValue('gap'))
+  const cardWidth    = card.getBoundingClientRect().width
+  const scaledHeight = cardWidth * (image.naturalHeight / image.naturalWidth)
 
-  const span = Math.ceil((height + rowGap) / (rowSize + rowGap))
-  card.style.gridRowEnd = `span ${span}`
+  const rowSpan         = Math.ceil((scaledHeight + rowGap) / (rowHeight + rowGap))
+  card.style.gridRowEnd = `span ${rowSpan}`
 }
 
 function packAllGalleryCards() {
-  document.querySelectorAll('.gallery-masonry .gallery-card').forEach(packGalleryCard)
+  document.querySelectorAll(`${SELECTORS.galleryMasonry} .gallery-card`).forEach(packGalleryCard)
 }
 
-// ========================================================================== //
+// ==================================================================================================== //
 // UI INTERACTIONS
-// ========================================================================== //
+// ==================================================================================================== //
 function initFullScreenModal() {
-  const modal    = document.querySelector('.full-screen')
-  const modalImg = modal?.querySelector('.full-screen-img')
-  const gallery  = document.querySelector('.gallery-masonry')
-  
-  if (!modal || !modalImg || !gallery) return
+  const modal      = document.querySelector(SELECTORS.fullScreenModal)
+  const modalImage = modal?.querySelector(SELECTORS.fullScreenImage)
+  const gallery    = document.querySelector(SELECTORS.galleryMasonry)
+  if (!modal || !modalImage || !gallery) return
 
-  const applyScaling = () => {
-    const imgRatio  = modalImg.naturalWidth / modalImg.naturalHeight
-    const viewRatio = window.innerWidth     / window.innerHeight
+  const scaleModalImage = () => {
+    const imageRatio    = modalImage.naturalWidth / modalImage.naturalHeight
+    const viewportRatio = window.innerWidth / window.innerHeight
 
-    if (imgRatio > viewRatio) {
-      modalImg.style.width  = '100%'
-      modalImg.style.height = 'auto'
+    if (imageRatio > viewportRatio) {
+      modalImage.style.width  = '100%'
+      modalImage.style.height = 'auto'
     } else {
-      modalImg.style.height = '100%'
-      modalImg.style.width  = 'auto'
+      modalImage.style.height = '100%'
+      modalImage.style.width  = 'auto'
     }
   }
 
   gallery.addEventListener('click', (event) => {
-    const card = event.target.closest('.gallery-card')
-    if (!card) return
+    const card  = event.target.closest('.gallery-card')
+    const image = card?.querySelector('img')
+    if (!image) return
 
-    const img = card.querySelector('img')
-    if (img) {
-      modalImg.onload = applyScaling
-      modalImg.src    = img.src
-      modalImg.alt    = img.alt
-      
-      setTimeout(() => {
-        modal.classList.add('active')
-      }, 75) // let animation play out
-    }
+    modalImage.onload = scaleModalImage
+    modalImage.src = image.src
+    modalImage.alt = image.alt
+
+    setTimeout(() => modal.classList.add('active'), 75) // let animation play out
   })
 
-  const closeModal = () => {
-    modal.classList.remove('active') 
-  }
+  const closeModal = () => modal.classList.remove('active')
 
   modal.addEventListener('click', (event) => {
-    if (event.target === modal) {
-      closeModal()
-    }
+    if (event.target === modal) closeModal()
   })
 
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && modal.classList.contains('active')) {
-      closeModal()
-    }
+    if (event.key === 'Escape' && modal.classList.contains('active')) closeModal()
   })
 }
 
 function initFilterPanelAutoHide() {
-	const contentEl   = document.querySelector('.content')
-	const filterPanel = document.querySelector('.filter-panel')
-	let lastScrollY   = contentEl.scrollTop
+  const contentPanel = document.querySelector(SELECTORS.contentPanel)
+  const filterPanel  = document.querySelector(SELECTORS.filterPanel)
+  if (!contentPanel || !filterPanel) return
 
-	contentEl.addEventListener('scroll', () => {
-		const currentY = contentEl.scrollTop
-		const delta    = currentY - lastScrollY
+  let lastScrollTop = contentPanel.scrollTop
 
-		if (currentY < 50) {
-			filterPanel.classList.remove('hidden')
-		} else if (delta > 5) {
-			filterPanel.classList.add('hidden')
-		} else if (delta < -5) {
-			filterPanel.classList.remove('hidden')
-		}
+  contentPanel.addEventListener('scroll', () => {
+    const currentScrollTop = contentPanel.scrollTop
+    const scrollDelta = currentScrollTop - lastScrollTop
 
-		lastScrollY = currentY
-	}, { passive: true })
+    if (currentScrollTop < 50) {
+      filterPanel.classList.remove('hidden')
+    } else if (scrollDelta > 5) {
+      filterPanel.classList.add('hidden')
+    } else if (scrollDelta < -5) {
+      filterPanel.classList.remove('hidden')
+    }
+
+    lastScrollTop = currentScrollTop
+  }, { passive: true })
 }
 
 function enableChipScrollInteractions() {
-  const container = document.querySelector('.chip-container')
+  const container = document.querySelector(SELECTORS.chipContainer)
   if (!container) return
 
-  let target        = container.scrollLeft
-  let animationId   = 0
-  let isDown        = false
-  let didDrag       = false
-  let suppressClick = false
-  let startX        = 0
-  let startScroll   = 0
+  let targetScrollLeft    = container.scrollLeft
+  let animationFrameId    = 0
+  let isPointerDown       = false
+  let hasDragged          = false
+  let shouldSuppressClick = false
+  let dragStartX          = 0
+  let dragStartScrollLeft = 0
 
-  const tick = () => {
-    const delta = target - container.scrollLeft
-    if (Math.abs(delta) > 0.5) {
-      container.scrollLeft += delta * 0.15
-      animationId = requestAnimationFrame(tick)
+  const animateScrollStep = () => {
+    const remainingDistance = targetScrollLeft - container.scrollLeft
+    if (Math.abs(remainingDistance) > 0.5) {
+      container.scrollLeft += remainingDistance * 0.15
+      animationFrameId = requestAnimationFrame(animateScrollStep)
     } else {
-      container.scrollLeft = target
-      animationId = 0
+      container.scrollLeft = targetScrollLeft
+      animationFrameId = 0
     }
   }
 
   container.addEventListener('wheel', (event) => {
-    if (isDown || container.scrollWidth <= container.clientWidth) return
-    if (!animationId) target             = container.scrollLeft
+    if (isPointerDown || container.scrollWidth <= container.clientWidth) return
+    if (!animationFrameId) targetScrollLeft = container.scrollLeft
     event.preventDefault()
 
-    const max = container.scrollWidth - container.clientWidth
-    target = Math.max(0, Math.min(target + 0.5 * event.deltaY, max))
-    if (!animationId) animationId = requestAnimationFrame(tick)
+    const maxScrollLeft = container.scrollWidth - container.clientWidth
+    targetScrollLeft = Math.max(0, Math.min(targetScrollLeft + 0.5 * event.deltaY, maxScrollLeft))
+    if (!animationFrameId) animationFrameId = requestAnimationFrame(animateScrollStep)
   }, { passive: false })
 
   container.addEventListener('pointerdown', (event) => {
     if (event.button !== 0) return
-    if (animationId) cancelAnimationFrame(animationId), animationId = 0
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId)
+      animationFrameId = 0
+    }
 
-    isDown        = true
-    didDrag       = false
-    suppressClick = false
-    startX        = event.clientX
-    startScroll   = container.scrollLeft
-    target        = startScroll
+    isPointerDown       = true
+    hasDragged          = false
+    shouldSuppressClick = false
+    dragStartX          = event.clientX
+    dragStartScrollLeft = container.scrollLeft
+    targetScrollLeft    = dragStartScrollLeft
     container.classList.add('dragging')
   })
 
   window.addEventListener('pointermove', (event) => {
-    if (!isDown) return
-    const delta = event.clientX - startX
-    if (Math.abs(delta) > 5) didDrag = true
+    if (!isPointerDown) return
+    const dragDistance = event.clientX - dragStartX
+    if (Math.abs(dragDistance) > 5) hasDragged = true
 
-    const max = container.scrollWidth - container.clientWidth
-    container.scrollLeft = Math.max(0, Math.min(startScroll - delta, max))
+    const maxScrollLeft  = container.scrollWidth - container.clientWidth
+    container.scrollLeft = Math.max(0, Math.min(dragStartScrollLeft - dragDistance, maxScrollLeft))
   })
 
-  const endDrag = () => {
-    if (!isDown) return
-    isDown = false
+  const endPointerDrag = () => {
+    if (!isPointerDown) return
+    isPointerDown = false
     container.classList.remove('dragging')
-    target = container.scrollLeft
-
-    if (didDrag) {
-      suppressClick = true
-    }
+    targetScrollLeft = container.scrollLeft
+    if (hasDragged) shouldSuppressClick = true
   }
 
-  window.addEventListener('pointerup',     endDrag)
-  window.addEventListener('pointercancel', endDrag)
+  window.addEventListener('pointerup', endPointerDrag)
+  window.addEventListener('pointercancel', endPointerDrag)
 
   container.addEventListener('click', (event) => {
-    if (didDrag || suppressClick) {
+    if (hasDragged || shouldSuppressClick) {
       event.preventDefault()
       event.stopPropagation()
-      suppressClick = false
-      didDrag       = false
+      shouldSuppressClick = false
+      hasDragged          = false
     }
   }, { capture: true })
 }
 
 function initSearchIconHover() {
-  const icon = document.querySelector('.search-pill .fa-search')
+  const icon = document.querySelector(SELECTORS.searchIcon)
   if (!icon) return
 
-  'mouseenter, click'.split(',').forEach(event => {
-    icon.addEventListener(event.trim(), () => {
-      const accentName = ACCENTS[Math.floor(Math.random() * ACCENTS.length)]
-      icon.style.color = `rgb(var(--ctp-${accentName}-rgb))`
-    })
-  })
-}
-
-function toggleFilterChip(folder, chip) {
-  const chipContainer = document.querySelector('.chip-container')
-
-  if (folder === 'all') {
-    chipContainer.querySelectorAll('.chip:not([data-folder="all"])').forEach(item => item.classList.remove('active'))
-    chip.classList.toggle('active')
-  } else {
-    chip.classList.toggle('active')
-    chipContainer.querySelector('.chip[data-folder="all"]').classList.remove('active')
+  const randomizeIconColor = () => {
+    const accentName = ACCENT_NAMES[Math.floor(Math.random() * ACCENT_NAMES.length)]
+    icon.style.color = `rgb(var(--ctp-${accentName}-rgb))`
   }
 
-  applyGalleryFilter()
+  icon.addEventListener('mouseenter', randomizeIconColor)
+  icon.addEventListener('click',      randomizeIconColor)
 }
 
-function applyGalleryFilter() {
-  const chipContainer = document.querySelector('.chip-container')
-  const activeFolders  = Array.from(chipContainer.querySelectorAll('.chip.active'))
-    .map(chip => chip.dataset.folder)
+function initSearchControls() {
+  const input        = document.querySelector(SELECTORS.searchInput)
+  const submitButton = document.querySelector(SELECTORS.searchSubmit)
+  if (!input) return
 
-  let visibleCount = 0
-  document.querySelectorAll('.gallery-masonry .gallery-card').forEach(card => {
-    const show = activeFolders.includes('all') || activeFolders.includes(card.dataset.folder)
-    card.style.display = show ? 'block' : 'none'
-    if (show) visibleCount++
+  const submitSearch = () => {
+    currentSearchQuery = input.value.trim().toLowerCase()
+    applyActiveFilters()
+  }
+
+  input.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault()
+      submitSearch()
+    }
   })
 
-  updateImageCount(visibleCount)
+  input.addEventListener('input', () => {
+    if (input.value.trim() === '') {
+      submitSearch()
+    }
+  })
+
+  submitButton?.addEventListener('click', (event) => {
+    event.preventDefault()
+    submitSearch()
+  })
+}
+
+function toggleFilterChip(folderName, chip) {
+  const chipContainer = document.querySelector(SELECTORS.chipContainer)
+  if (!chipContainer) return
+
+  const willBeActive = !chip.classList.contains('active')
+
+  if (folderName === 'all') {
+    chipContainer.querySelectorAll('.chip').forEach((item) => item.classList.remove('active'))
+    if (willBeActive) chip.classList.add('active')
+  } else {
+    chipContainer.querySelector('.chip[data-folder="all"]')?.classList.remove('active')
+    chip.classList.toggle('active')
+  }
+
+  activeFolderFilters = Array.from(chipContainer.querySelectorAll('.chip.active'))
+    .map((activeChip) => activeChip.dataset.folder)
+
+  applyActiveFilters()
+}
+
+function setActiveFolderFilter(folderName) {
+  const chipContainer = document.querySelector(SELECTORS.chipContainer)
+  if (!chipContainer) return
+
+  chipContainer.querySelectorAll('.chip').forEach((item) => item.classList.remove('active'))
+  chipContainer.querySelector(`.chip[data-folder="${folderName}"]`)?.classList.add('active')
+  activeFolderFilters = [folderName]
+
+  applyActiveFilters()
+}
+
+function applyActiveFilters() {
+  const query         = currentSearchQuery.trim().toLowerCase()
+  const chipContainer = document.querySelector(SELECTORS.chipContainer)
+  const allChip       = chipContainer?.querySelector('.chip[data-folder="all"]')
+  const folderChips   = Array.from(chipContainer?.querySelectorAll('.chip:not([data-folder="all"])') || [])
+  
+  const panels       = document.querySelectorAll(SELECTORS.contentSections)
+  const isGalleryTab = panels.length > 1 && panels[1].classList.contains('active')
+
+  folderChips.forEach((chip) => {
+    const folderName = chip.dataset.folder || ''
+    let chipMatchesQuery = !query
+    
+    if (query) {
+      if (isGalleryTab) {
+        chipMatchesQuery = allGalleryImages.some(img => img.folderName === folderName && img.name.toLowerCase().includes(query))
+      } else {
+        chipMatchesQuery = folderName.toLowerCase().includes(query)
+      }
+    }
+    
+    chip.style.display = chipMatchesQuery ? '' : 'none'
+  })
+
+  if (allChip) allChip.style.display = ''
+
+  const visibleFolderNames = folderChips
+    .filter((chip) => chip.style.display !== 'none')
+    .map((chip)    => chip.dataset.folder)
+
+  activeFolderFilters = activeFolderFilters.filter((folder) => folder === 'all' || visibleFolderNames.includes(folder))
+
+  document.querySelectorAll(`${SELECTORS.folderGrid} .folder-card`).forEach((card) => {
+    const folderName          = card.dataset.name || ''
+    const matchesFolderFilter = activeFolderFilters.includes('all') || activeFolderFilters.includes(folderName)
+    const matchesQuery        = !query || [folderName, card.textContent].some((value) => (value || '').toLowerCase().includes(query))
+    card.style.display        = matchesFolderFilter && matchesQuery ? '' : 'none'
+  })
+
+  filteredImages = allGalleryImages.filter((img) => {
+    const matchesFolderFilter = activeFolderFilters.includes('all') || activeFolderFilters.includes(img.folderName)
+    
+    let matchesQuery = !query
+    if (query) {
+      if (isGalleryTab) {
+        matchesQuery = img.name.toLowerCase().includes(query)
+      } else {
+        matchesQuery = [img.folderName, img.name].some((value) => value.toLowerCase().includes(query))
+      }
+    }
+    
+    return matchesFolderFilter && matchesQuery
+  })
+
+  updateImageCount(filteredImages.length)
+
+  const gridContainer = document.querySelector(SELECTORS.galleryMasonry)
+  if (gridContainer) gridContainer.innerHTML = ''
+  
+  renderIndex = 0
+  renderNextBatch()
 }
 
 function updateImageCount(count) {
-  const countLabel = document.getElementById('image-count')
-  if (!countLabel) return
-
-  if (count === undefined) {
-    count = Array.from(document.querySelectorAll('.gallery-masonry .gallery-card'))
-      .filter(card => card.style.display !== 'none').length
-  }
-  
-  countLabel.textContent = `${count} Images`
+  const countLabel = document.querySelector(SELECTORS.imageCountLabel)
+  if (countLabel) countLabel.textContent = `${count} Images`
 }
 
 function setupMarquee(root = document) {
-  root.querySelectorAll('.folder-title').forEach(title => {
-    const span = title.querySelector('span')
-    if (span && span.scrollWidth > title.clientWidth) {
+  root.querySelectorAll(SELECTORS.folderTitle).forEach((title) => {
+    const label = title.querySelector('span')
+    if (!label) return
+
+    if (label.scrollWidth > title.clientWidth) {
       title.classList.add('marquee')
-      title.style.setProperty('--marquee-room', title.clientWidth + 'px')
+      title.style.setProperty('--marquee-room', `${title.clientWidth}px`)
     } else {
       title.classList.remove('marquee')
       title.style.removeProperty('--marquee-room')
@@ -357,193 +503,187 @@ function setupMarquee(root = document) {
 }
 
 function initNavPill() {
-  const pill = document.querySelector('.nav-pill')
+  const pill = document.querySelector(SELECTORS.navPill)
   if (!pill) return
 
-  const tabs   = pill.querySelectorAll('.tab')
-  const panels = document.querySelectorAll('.content > div')
+  const tabs   = pill.querySelectorAll(SELECTORS.navTab)
+  const panels = document.querySelectorAll(SELECTORS.contentSections)
 
-  function showPanel(index) {
-    panels.forEach((panel, idx) => panel.classList.toggle('active', idx === index))
-    if (index === 1) packAllGalleryCards()
+  const showPanel = (panelIndex) => {
+    panels.forEach((panel, index) => panel.classList.toggle('active', index === panelIndex))
+    if (panelIndex === 1) packAllGalleryCards()
   }
 
-  tabs.forEach((tab, index) => {
-    tab.addEventListener('click', event => {
+  tabs.forEach((tab, tabIndex) => {
+    tab.addEventListener('click', (event) => {
       event.preventDefault()
       if (tab.classList.contains('active')) return
 
-      tabs.forEach(item => item.classList.remove('active'))
+      tabs.forEach((item) => item.classList.remove('active'))
       tab.classList.add('active')
-      showPanel(index)
+
+      const searchInput = document.querySelector(SELECTORS.searchInput)
+      if (searchInput) searchInput.value = ''
+      currentSearchQuery = ''
+
+      showPanel(tabIndex)
+      applyActiveFilters()
     })
   })
 
-  const activeIndex = Array.from(tabs).findIndex(tab => tab.classList.contains('active'))
-  showPanel(activeIndex === -1 ? 0 : activeIndex)
+  const activeTabIndex = Array.from(tabs).findIndex((tab) => tab.classList.contains('active'))
+  showPanel(activeTabIndex === -1 ? 0 : activeTabIndex)
 }
 
 function initSortPill() {
-  const pill = document.querySelector('.sort-pill')
+  const pill = document.querySelector(SELECTORS.sortPill)
   if (!pill) return
 
-  const slider  = pill.querySelector('.sort-slider')
-  const options = pill.querySelectorAll('.sort-option')
+  const slider  = pill.querySelector(SELECTORS.sortSlider)
+  const options = pill.querySelectorAll(SELECTORS.sortOption)
 
-  function moveSlider(button) {
-    slider.style.width     = button.offsetWidth + 'px'
-    slider.style.transform = `translateX(${button.offsetLeft}px)`
+  const moveSlider = (option) => {
+    slider.style.width     = `${option.offsetWidth}px`
+    slider.style.transform = `translateX(${option.offsetLeft}px)`
   }
 
-  function setArrow(option, state) {
+  const setSortArrow = (option, direction) => {
     if (option.dataset.sort === 'type') return
     const icon = option.querySelector('i')
     if (!icon) return
 
     icon.classList.remove('fa-arrow-up', 'fa-arrow-down')
-    icon.classList.add(state === 'down' ? 'fa-arrow-down' : 'fa-arrow-up')
+    icon.classList.add(direction === 'down' ? 'fa-arrow-down' : 'fa-arrow-up')
   }
 
-  options.forEach(option => {
+  options.forEach((option) => {
     option.addEventListener('click', () => {
-      const wasActive = option.classList.contains('active')
-      const saved     = option.dataset.direction
-      const direction = wasActive ? (saved === 'up' ? 'down' : 'up') : (saved || 'up')
+      const wasActive      = option.classList.contains('active')
+      const savedDirection = option.dataset.direction
+      const direction      = wasActive ? (savedDirection === 'up' ? 'down' : 'up') : (savedDirection || 'up')
 
-      options.forEach(item => {
+      options.forEach((item) => {
         item.classList.remove('active')
-        if (item !== option) setArrow(item, item.dataset.direction || 'up')
+        if (item !== option) setSortArrow(item, item.dataset.direction || 'up')
       })
 
       option.classList.add('active')
       option.dataset.direction = direction
-      setArrow(option, direction)
+      currentSort = { key: option.dataset.sort, direction }
+      setSortArrow(option, direction)
       moveSlider(option)
+      applyCurrentSort()
     })
   })
 
-  const active = pill.querySelector('.sort-option.active')
-  if (active) {
-    active.dataset.direction = 'up'
-    setArrow(active, 'up')
-    moveSlider(active)
+  const activeOption = pill.querySelector(`${SELECTORS.sortOption}.active`)
+  if (activeOption) {
+    activeOption.dataset.direction = 'up'
+    setSortArrow(activeOption, 'up')
+    moveSlider(activeOption)
   }
 
   window.addEventListener('resize', () => {
-    const current = pill.querySelector('.sort-option.active')
-    if (current) moveSlider(current)
+    const currentOption = pill.querySelector(`${SELECTORS.sortOption}.active`)
+    if (currentOption) moveSlider(currentOption)
   })
 }
 
+function compareByCurrentSort(itemA, itemB, valueOf) {
+  if (currentSort.key === 'type') {
+    return (Math.random() > 0.5 ? 1 : -1) * (currentSort.direction === 'up' ? 1 : -1)
+  }
+
+  const valueA = valueOf(itemA)
+  const valueB = valueOf(itemB)
+
+  const comparison = currentSort.key === 'size' || currentSort.key === 'date'
+    ? (Number(valueA) || 0) - (Number(valueB) || 0)
+    : String(valueA).localeCompare(String(valueB), undefined, { numeric: true, sensitivity: 'base' })
+
+  return currentSort.direction === 'up' ? comparison : -comparison
+}
+
+function applyCurrentSort() {
+  const folderGrid = document.querySelector(SELECTORS.folderGrid)
+  if (folderGrid) {
+    const cards = Array.from(folderGrid.querySelectorAll('.folder-card'))
+    cards.sort((cardA, cardB) => compareByCurrentSort(cardA, cardB, (card) => card.dataset[currentSort.key] ?? ''))
+    cards.forEach((card) => folderGrid.appendChild(card))
+  }
+
+  allGalleryImages.sort((imgA, imgB) => compareByCurrentSort(imgA, imgB, (img) => img[currentSort.key] ?? ''))
+
+  applyActiveFilters()
+}
+
 function initGalleryFilters() {
-  const allImagesChip = document.querySelector('.chip[data-folder="all"]')
-  if (allImagesChip) {
-    allImagesChip.addEventListener('click', function() {
-      toggleFilterChip('all', this)
+  const allChip = document.querySelector('.chip[data-folder="all"]')
+  allChip?.addEventListener('click', () => toggleFilterChip('all', allChip))
+}
+
+// ==================================================================================================== //
+// FOLDER LOADING (via server.py on localhost:4269)
+// ==================================================================================================== //
+async function loadFoldersFromServer() {
+  const manifestResponse = await fetch(`${GALLERY_SERVER_URL}/folders`)
+  if (!manifestResponse.ok) throw new Error(`Manifest request failed: ${manifestResponse.status}`)
+
+  const manifest      = await manifestResponse.json()
+  const chipContainer = document.querySelector(SELECTORS.chipContainer)
+
+  for (const folder of manifest) {
+    const previewUrl = folder.images.length > 0 
+        ? `${GALLERY_SERVER_URL}/image?folder=${encodeURIComponent(folder.name)}&file=${encodeURIComponent(folder.images[0].name)}`
+        : ''
+
+    createFolderCard(folder.name, previewUrl, folder.accent, folder.sizeMB, folder.fileCount)
+
+    folder.images.forEach((img) => {
+      allGalleryImages.push({
+        folderName: folder.name,
+        name:       img.name,
+        size:       img.size,
+        date:       nextCardTimestamp(),
+        type:       (img.name.split('.').pop() || 'img').toLowerCase(),
+        accent:     folder.accent,
+        url:        `${GALLERY_SERVER_URL}/image?folder=${encodeURIComponent(folder.name)}&file=${encodeURIComponent(img.name)}`
+      })
     })
-  }
-}
 
-// ========================================================================== //
-// MOCK DATA GENERATION
-// ========================================================================== //
-const MockGen = {
-  num:   (min, max) => Math.random() * (max - min) + min,
-  int:   (min, max) => Math.floor(MockGen.num(min, max)),
-  item:  (list)     => list[MockGen.int(0, list.length)],
-  
-  folderName: () => {
-    const adjectives = ['Cozy', 'Hidden', 'Forgotten', 'Sunny', 'Quiet', 'Vivid', 'Lost', 'Ancient', 'Tiny', 'Glowing']
-    const nouns      = ['Rooms', 'Archive', 'Sketches', 'Renders', 'Snapshots', 'Outtakes', 'Drafts', 'Memories', 'Backups']
-    return `${MockGen.item(adjectives)} ${MockGen.item(nouns)}`
-  },
-
-  imageName: () => {
-    const prefixes = ['IMG', 'DSC', 'SCAN', 'RENDER', 'EXPORT']
-    return `${MockGen.item(prefixes)}_${MockGen.int(1000, 9999)}.svg`
-  },
-
-  svgImage: () => {
-    const width  = 400
-    const height = MockGen.int(100, 560)
-    const bgHex  = HEX_COLORS[MockGen.item(ACCENTS)]
-    const shapesCount = MockGen.int(3, 8)
-    
-    let shapes = ''
-    for (let i = 0; i < shapesCount; i++) {
-      const color   = HEX_COLORS[MockGen.item(ACCENTS)]
-      const opacity = MockGen.num(0.3, 0.85).toFixed(2)
-      const type    = MockGen.item(['circle', 'rect', 'poly'])
-
-      if (type === 'circle') {
-        shapes += `<circle cx="${MockGen.num(0, width)}" cy="${MockGen.num(0, height)}" r="${MockGen.num(20, 90)}" fill="${color}" opacity="${opacity}"/>`
-      } else if (type === 'rect') {
-        const size = MockGen.num(40, 140)
-        shapes += `<rect x="${MockGen.num(0, width)}" y="${MockGen.num(0, height)}" width="${size}" height="${size}" fill="${color}" opacity="${opacity}" transform="rotate(${MockGen.num(0, 360)} ${width/2} ${height/2})"/>`
-      } else {
-        const p1 = `${MockGen.num(0, width)},${MockGen.num(0, height)}`
-        const p2 = `${MockGen.num(0, width)},${MockGen.num(0, height)}`
-        const p3 = `${MockGen.num(0, width)},${MockGen.num(0, height)}`
-        shapes += `<polygon points="${p1} ${p2} ${p3}" fill="${color}" opacity="${opacity}"/>`
-      }
+    if (chipContainer) {
+      const chip          = document.createElement('button')
+      chip.className      = 'chip'
+      chip.dataset.folder = folder.name
+      chip.innerHTML      = `<span>${folder.name}</span>`
+      chip.addEventListener('click', () => toggleFilterChip(folder.name, chip))
+      chipContainer.appendChild(chip)
     }
-
-    const svgMarkup = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
-        <defs>
-          <clipPath id="canvas-clip">
-            <rect width="${width}" height="${height}" />
-          </clipPath>
-        </defs>
-        <rect width="100%" height="100%" fill="${bgHex}"/>
-        <g clip-path="url(#canvas-clip)">
-          ${shapes}
-        </g>
-      </svg>
-    `.trim()
-
-    return new Blob([svgMarkup], { type: 'image/svg+xml' })
   }
+
+  applyCurrentSort()
 }
 
-function populateMockData(folderCount = 6) {
-  for (let i = 0; i < folderCount; i++) {
-    const imageCount = MockGen.int(5, 18)
-    const folderName = `${MockGen.folderName()} ${imageCount}`
-    
-    createFolderCard(
-      folderName,
-      MockGen.svgImage(),
-      MockGen.item(ACCENTS),
-      Number(MockGen.num(10, 500).toFixed(1)),
-      imageCount
-    )
-
-    const folderImages = Array.from({ length: imageCount }, () => ({
-      name:   MockGen.imageName(),
-      file:   MockGen.svgImage(),
-      accent: MockGen.item(ACCENTS)
-    }))
-
-    loadGalleryFolder(folderName, folderImages)
-  }
-}
-
-// ========================================================================== //
+// ==================================================================================================== //
 // INIT
-// ========================================================================== //
-document.addEventListener('DOMContentLoaded', () => {
-  populateMockData(50)
-
+// ==================================================================================================== //
+document.addEventListener('DOMContentLoaded', async () => {
   initFilterPanelAutoHide()
   initNavPill()
   initSortPill()
   initGalleryFilters()
+  initSearchControls()
   initSearchIconHover()
   initFullScreenModal()
-  
+  enableChipScrollInteractions()
+  initInfiniteScroll()
+
+  try {
+    await loadFoldersFromServer()
+  } catch (error) {}
+
   setupMarquee()
-  enableChipScrollInteractions();
+
   window.addEventListener('resize', () => {
     setupMarquee()
     packAllGalleryCards()

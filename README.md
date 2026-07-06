@@ -21,9 +21,9 @@
     - [ _ ] Use the arrow keys to go next or previous
     - [ _ ] Tap the left or right edge of the screen to go next or previous
 
-# Ho To ???
+# How To ???
 - Put the **server.py** in the **root** images **folder** and run:
-- Run: **python ./server.py**
+  - **python ./server.py**
 - Refresh the website
 
 # Preview:

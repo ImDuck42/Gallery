@@ -20,6 +20,7 @@
     - [ _ ] Scroll on the image to go next or previous
     - [ _ ] Use the arrow keys to go next or previous
     - [ _ ] Tap the left or right edge of the screen to go next or previous
+- [ _ ] Make server acccount for images removed/added after its start
 
 # How To ???
 - Put the **server.py** in the **root** images **folder** and run:

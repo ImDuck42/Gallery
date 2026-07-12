@@ -453,7 +453,7 @@ function applyActiveFilters() {
 
   document.querySelectorAll(`${SELECTORS.folderGrid} .folder-card`).forEach((card) => {
     const folderName          = card.dataset.name || ''
-    const matchesFolderFilter = activeFolderFilters.includes('all') || activeFolderFilters.includes(folderName)
+    const matchesFolderFilter = isGalleryTab ? activeFolderFilters.includes('all') || activeFolderFilters.includes(folderName) : true
     const matchesQuery        = !query || [folderName, card.textContent].some((value) => (value || '').toLowerCase().includes(query))
     card.style.display        = matchesFolderFilter && matchesQuery ? '' : 'none'
   })

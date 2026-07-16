@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 # Doesn't need any pip packages
 
-import hashlib
-import json
-import mimetypes
 import os
-import shutil
 import sys
+import json
+import shutil
+import hashlib
+import mimetypes
 import urllib.parse
 
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib     import Path
 
-DEFAULT_PORT = 4269
+DEFAULT_PORT     = 4269
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".svg"}
 
 ACCENT_NAMES = [

@@ -157,7 +157,7 @@ header {
 	}
 }
 
-/* =============== SEARCH BAR =============== */
+/* =============== SEARCH Pill =============== */
 .search-pill {
   display:          flex;
   align-items:      center;
@@ -211,7 +211,7 @@ header {
       transform: scale(1.05);
     }
     &:active {
-      transform: scale(0.95) translateX(10px);
+      transform: scale(0.95) translateX(7.5px);
     }
   }
 

@@ -105,7 +105,7 @@ function createFolderCard(folderName, previewUrl, accentName, sizeInMB, fileCoun
   `
 
   card.addEventListener('click', () => {
-    setTimeout(() => openFolderInGallery(folderName), 100) // let animation play out
+    openFolderInGallery(folderName)
   })
 
   gridContainer.appendChild(card)
@@ -230,7 +230,7 @@ function initFullScreenModal() {
     modalImage.src = image.src
     modalImage.alt = image.alt
 
-    setTimeout(() => modal.classList.add('active'), 75) // let animation play out
+    modal.classList.add('active')
   })
 
   const closeModal = () => modal.classList.remove('active')

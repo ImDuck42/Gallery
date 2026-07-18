@@ -1,10 +1,10 @@
 # ToDo:
-- [ _ ] Fix the sort icons that currently look off
-- [ _ ] Style the navigation pills so they do not look bland
+- [ X ] Fix the sort icons that currently look off
+- [ X ] Style the navigation pills so they do not look bland
 - [ X ] Add a nice custom scrollbar to the website
 - [ X ] Implement the Gallery and Settings tabs:
     - [ X ] Gallery tab
-    - [ X ] Settings tab -- no content 
+    - [ X ] Settings tab
 - [ X ] Change the search icon color to a random accent color on hover
 - [ X ] Add a file count badge to interactive elements:
     - [ X ] Make every single element on the site interactable
@@ -28,6 +28,6 @@
 - Refresh the website
 
 # Preview:
-![Preview](./assets/image.png)
-![PreviewToo](./assets/imageToo.png)
-![PreviewTree](./assets/imageTree.png)
+![Preview](./assets/images/image.png)
+![PreviewToo](./assets/images/imageToo.png)
+![PreviewTree](./assets/images/imageTree.png)

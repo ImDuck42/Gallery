@@ -601,7 +601,7 @@ header {
   flex-direction: column;
   gap:            25px;
   padding:        25px;
- 
+
   .section {
     display:        flex;
     flex-direction: column;
@@ -991,7 +991,7 @@ header {
     font:          700 0.75rem sans-serif;
  
     &::after {
-      content: 'unsupported element';
+      content: 'developer is dumdum';
     }
   }
 }

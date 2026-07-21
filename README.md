@@ -9,6 +9,7 @@
 - [ X ] Add a file count badge to interactive elements:
     - [ X ] Make every single element on the site interactable
 - [ X ] Set the image hover border color to match the color of its folder
+- [ _ ] Allow removal of imported settings
 - [ _ ] Add image controls:
     - [ _ ] Next and previous buttons
     - [ _ ] Slideshow mode (with milliseconds per image setting)

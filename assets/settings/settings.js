@@ -128,10 +128,12 @@ function clearLocalCache() {
   alert('Local cache successfully purged!')
 }
 
+// ==================================================================================================== //
+// SETTINGS IMPORT -- The only actually working thing here
+// ==================================================================================================== //
 async function loadExternalSettingsFromUrl(jsonUrl) {
   if (!jsonUrl) {
     console.warn('[API] No URL provided.');
-    alert('Please enter a URL first!');
     return;
   }
 
@@ -164,10 +166,21 @@ async function loadExternalSettingsFromUrl(jsonUrl) {
       alert('Settings loaded successfully! Connect "appendAndRenderSettings" to update your UI.');
     }
 
+    const urls = JSON.parse(localStorage.getItem('saved_urls') || '[]');
+    if (!urls.includes(jsonUrl)) {
+      urls.push(jsonUrl);
+      localStorage.setItem('saved_urls', JSON.stringify(urls));
+    }
+
   } catch (error) {
     console.error('[API] Failed to fetch external config:', error);
     alert(`Error loading settings: ${error.message}`);
   }
+}
+
+if (document.readyState !== 'loading') {
+  const urls = JSON.parse(localStorage.getItem('saved_urls') || '[]');
+  urls.forEach(url => loadExternalSettingsFromUrl(url));
 }
 
 // Helper to inject script tags into the document

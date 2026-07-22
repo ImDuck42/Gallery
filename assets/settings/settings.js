@@ -1,135 +1,65 @@
-// ==================================================================================================== //
-// GENERAL FUNCTIONS
-// ==================================================================================================== //
 function onToggleChange(enableToggle) {
-  console.log(`[Core Service] Status changed: ${enableToggle ? 'ENABLED' : 'DISABLED'}`)
+  console.log('onToggleChange')
 }
 
 function printValue(textValue) {
-  if (!textValue) {
-    console.warn('[Ping] No service name provided.')
-    return
-  }
-  console.log(`[Ping] Pinging service: "${textValue}"... Success!`)
+  console.log('printValue')
 }
 
 function toggleNotifications(enabled) {
-  console.log(`[Notifications] Email notifications are now ${enabled ? 'ON' : 'OFF'}.`)
+  console.log('toggleNotifications')
 }
 
-// ==================================================================================================== //
-// APPEARANCE FUNCTIONS
-// ==================================================================================================== //
 function applyTheme(isDarkMode) {
-  console.log(`[Theme] Switched to ${isDarkMode ? 'Dark' : 'Light'} Mode.`)
-  if (isDarkMode) {
-    document.body.classList.add('theme-dark')
-    document.body.classList.remove('theme-light')
-  } else {
-    document.body.classList.add('theme-light')
-    document.body.classList.remove('theme-dark')
-  }
+  console.log('applyTheme')
 }
 
 function updateUIScale(scaleValue) {
-  console.log(`[UI] Interface scale set to ${scaleValue}%`)
-  document.documentElement.style.setProperty('--ui-scale', `${scaleValue / 100}`)
+  console.log('updateUIScale')
 }
 
 function resetScale() {
-  const scaleInput = document.getElementById('scaleSlider')
-  if (scaleInput) {
-    scaleInput.value = 100
-    scaleInput.dispatchEvent(new Event('input')) 
-  }
+  console.log('resetScale')
 }
 
 function applyBrandColor(hexColor) {
-  console.log(`[Brand] Applying custom color: ${hexColor}`)
-  document.documentElement.style.setProperty('--brand-color', hexColor)
+  console.log('applyBrandColor')
 }
 
-// ==================================================================================================== //
-// AUDIO & VIDEO FUNCTIONS
-// ==================================================================================================== //
 function toggleMute(isMuted) {
-  const volInput = document.getElementById('volumeSlider')
-  if (isMuted) {
-    console.log('[Audio] System Muted.')
-    if (volInput) volInput.disabled = true
-  } else {
-    console.log('[Audio] System Unmuted.')
-    if (volInput) volInput.disabled = false
-  }
+  console.log('toggleMute')
 }
 
 function changeVolume(volume) {
-  console.log(`[Audio] Master volume adjusted to: ${volume}%`)
+  console.log('changeVolume')
 }
 
 function saveQuietHours(start, end) {
-  if (!start || !end) {
-    console.warn('[Quiet Hours] Please provide both a start and end time.')
-    return
-  }
-  console.log(`[Quiet Hours] Saved. Notifications will be paused from ${start} to ${end}.`)
+  console.log('saveQuietHours')
 }
 
-// ==================================================================================================== //
-// ACCOUNT & PRIVACY FUNCTIONS
-// ==================================================================================================== //
 function updatePassword(newPassword) {
-  if (!newPassword || newPassword.length < 6) {
-    alert('Password must be at least 6 characters long!')
-    return
-  }
-  console.log(`[Security] Password updated successfully! (length: ${newPassword.length})`)
-  
-  const pwInput = document.getElementById('newPassword')
-  if (pwInput) {
-    pwInput.value = ''
-    pwInput.dispatchEvent(new Event('input'))
-  }
+  console.log('updatePassword')
 }
 
 function exportUserData() {
-  console.log('[Privacy] Compiling user data for export...')
-  setTimeout(() => {
-    console.log('[Privacy] User data exported successfully. Check your downloads folder.')
-    alert('Data export complete!')
-  }, 1000)
+  console.log('exportUserData')
 }
 
 function deleteAccount() {
-  console.error('[Danger Zone] Account deletion initiated...')
-  alert('Your account has been flagged for deletion.')
+  console.log('deleteAccount')
 }
 
-// ==================================================================================================== //
-// DEVELOPER FUNCTIONS
-// ==================================================================================================== //
 function pingApiEndpoint(url) {
-  if (!url) {
-    console.warn('[API] No URL provided to ping.');
-    return
-  }
-  console.log(`[API] Sending test request to: ${url}`)
-  
-  setTimeout(() => {
-    console.log(`[API] 200 OK from ${url}`)
-  }, 800)
+  console.log('pingApiEndpoint')
 }
 
 function clearLocalCache() {
-  console.log('[Dev] Clearing localStorage and sessionStorage...')
-  localStorage.clear()
-  sessionStorage.clear()
-  console.log('[Dev] Cache cleared.')
-  alert('Local cache successfully purged!')
+  console.log('clearLocalCache')
 }
 
 // ==================================================================================================== //
-// SETTINGS IMPORT -- The only actually working thing here
+// DEVELOPER OPTIONS -- The only actually working thing here
 // ==================================================================================================== //
 async function loadExternalSettingsFromUrl(jsonUrl) {
   if (!jsonUrl) {
@@ -166,10 +96,10 @@ async function loadExternalSettingsFromUrl(jsonUrl) {
       alert('Settings loaded successfully! Connect "appendAndRenderSettings" to update your UI.');
     }
 
-    const urls = JSON.parse(localStorage.getItem('saved_urls') || '[]');
+    const urls = JSON.parse(localStorage.getItem('imports') || '[]');
     if (!urls.includes(jsonUrl)) {
       urls.push(jsonUrl);
-      localStorage.setItem('saved_urls', JSON.stringify(urls));
+      localStorage.setItem('imports', JSON.stringify(urls));
     }
 
   } catch (error) {
@@ -179,7 +109,7 @@ async function loadExternalSettingsFromUrl(jsonUrl) {
 }
 
 if (document.readyState !== 'loading') {
-  const urls = JSON.parse(localStorage.getItem('saved_urls') || '[]');
+  const urls = JSON.parse(localStorage.getItem('imports') || '[]');
   urls.forEach(url => loadExternalSettingsFromUrl(url));
 }
 

@@ -306,39 +306,21 @@
         }
       ]
     },
+
+
+
+
+
     {
       "id"     : "developer",
-      "label"  : "Developer Settings",
+      "label"  : "Developer Options",
       "icon"   : "code",
-      "accent" : "teal",
+      "accent" : "red",
       "entries": [
-        {
-          "id"         : "apiEndpoint",
-          "label"      : "API Endpoint",
-          "description": "Configure the base URL for backend requests.",
-          "icon"       : "server",
-          "elements"   : [
-            {
-              "type"       : "input",
-              "id"         : "apiUrl",
-              "inputType"  : "url",
-              "variable"   : "apiUrl",
-              "placeholder": "https://api.example.com",
-              "default"    : "https://api.example.com"
-            },
-            {
-              "type"   : "button",
-              "id"     : "testApiBtn",
-              "label"  : "Ping URL",
-              "accent" : "pink",
-              "execute": "pingApiEndpoint(apiUrl)"
-            }
-          ]
-        },
         {
           "id"         : "importSettings",
           "label"      : "Import Settings via URL",
-          "description": "Load an external JSON settings file and dynamically load its corresponding JavaScript logic.",
+          "description": "Load an external JSON settings file and load its corresponding JavaScript logic.",
           "icon"       : "cloud-arrow-down",
           "elements"   : [
             {
@@ -346,14 +328,14 @@
               "id"         : "settingsUrlInput",
               "inputType"  : "url",
               "variable"   : "settingsUrl",
-              "placeholder": "https://example.com/path/settings.json",
+              "placeholder": "https://[...]/settings.json",
               "default"    : ""
             },
             {
               "type"   : "button",
               "id"     : "loadSettingsUrlBtn",
               "label"  : "Load Settings",
-              "accent" : "teal",
+              "accent" : "green",
               "execute": "loadExternalSettingsFromUrl(settingsUrl)"
             }
           ]

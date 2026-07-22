@@ -5,8 +5,8 @@ const SETTINGS_JSON_URL   = './settings.json'
 const SETTINGS_SCRIPT_SRC = document.currentScript?.src
 
 const SETTINGS_ACCENTS = [
-  'rosewater', 'flamingo', 'pink', 'mauve', 'red', 'maroon',
-  'peach', 'yellow', 'green', 'teal', 'sky', 'sapphire', 'blue', 'lavender',
+  'rosewater', 'flamingo', 'pink', 'mauve', 'red', 'maroon', 'peach',
+  'yellow', 'green', 'teal', 'sky', 'sapphire', 'blue', 'lavender',
 ]
 
 const SELECTORS = {
@@ -384,7 +384,7 @@ function appendAndRenderSettings(newSections) {
 }
 
 // ==================================================================================================== //
-// It's beatufull outside today INIT?
+// It's beatuful outside today INIT?
 // ==================================================================================================== //
 document.addEventListener('DOMContentLoaded', () => {
   loadSettingsPage().catch((error) => console.error(error))

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 40" fill="none" width="100%">
+  <style>
+    .title { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-weight: bold; font-size: 28px; }
+    .sub   { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }
+  </style>
+
+  <!-- Title -->
+  <text x="0" y="28" class="title" fill="#f5c2e7">Gallery</text>
+
+  <!-- Subtitle -->
+  <text x="100" y="30" class="sub">
+    <tspan fill="#f2cdcd">A </tspan>
+    <tspan fill="#f5e0dc">beautiful </tspan>
+    <tspan fill="#f38ba8">interactive </tspan>
+    <tspan fill="#eba0ac">Web-</tspan>
+    <tspan fill="#fab387">based </tspan>
+    <tspan fill="#f9e2af">image </tspan>
+    <tspan fill="#a6e3a1">Gallery </tspan>
+    <tspan fill="#94e2d5">in </tspan>
+    <tspan fill="#89dceb">Catppuccin </tspan>
+    <tspan fill="#74c7ec">Mocha </tspan>
+    <tspan fill="#89b4fa">colors</tspan>
+  </text>
+</svg>

@@ -1,4 +1,4 @@
-# <img src="assets/gallery-svgrepo.svg" width="32" height="32" alt="Site Icon" style="vertical-align: text-bottom;"> Gallery <sub style="font-size: small;"><span >A beatiful interactive Web-based image Gallery in Cappuccin Mocha colors</span></sub>  
+# <img src="assets/gallery-svgrepo.svg" width="32" height="32" alt="Site Icon" style="vertical-align: text-bottom;"> Gallery
 
 ## How To Use This Thing:
 - Put the **server.py** in the **root** images **folder** and run:

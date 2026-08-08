@@ -1,4 +1,47 @@
-# ToDo:
+<h1>
+  <img src="assets/gallery-svgrepo.svg" width="32" height="32" style="vertical-align: text-bottom;">
+  <span style="color: #f5c2e7;">Gallery</span>
+  <sub style="font-size: medium;">
+    <span style="color: #f2cdcd;">A                                             </span>
+    <span style="color: #f5e0dc;">beautiful                                     </span>
+    <span style="color: #f38ba8;">interactive                                   </span>
+    <span style="color: #eba0ac;">Web-</span><span style="color: #fab387;">based</span>
+    <span style="color: #f9e2af;">image                                         </span>
+    <span style="color: #a6e3a1;">Gallery                                       </span>
+    <span style="color: #94e2d5;">in                                            </span>
+    <span style="color: #89dceb;">Catppuccin                                    </span>
+    <span style="color: #74c7ec;">Mocha                                         </span>
+    <span style="color: #89b4fa;">colors                                        </span>
+  </sub>
+</h1>
+
+
+## How To Use This Thing:
+- Put the **server.py** in the **root** images **folder** and run:
+  - **python server.py**
+- Refresh the website, or open it
+
+
+## This Site Can Load Plugins, Cus Why Not
+- Why should u use them?
+    - You like running code u don't understand <u>for sum extra features</u>
+    - You are me
+    - Goon
+- Why shouldn't u use them?
+    - <u>You like running code u don't understand</u> for sum extra features
+
+### If for some reason you want to use them:
+1) **The easy part:** The sumtin.json settings page section addition
+   - https://github.com/ImDuck42/Gallery/blob/main/assets/settings/settings.json
+
+2) **The tedious part:** The sumtin.js file with the functionality of the plugin/extension/addon or whatever u wanna call it
+   - https://github.com/ImDuck42/Gallery/blob/main/assets/settings/settings.js
+
+- **Im too lazy so please consult Gemini 3.6 Fash for help with this:**
+   - [Please, oh great Gemini, so help me in my endevour of understanding this oh so confusing stuff](https://aistudio.google.com/app/prompts?state=%7B%22ids%22:%5B%2219RFJ-b5T4ZhdxKar6TQa7vAFMacft3I_%22%5D,%22action%22:%22open%22,%22userId%22:%22106153650093848489488%22,%22resourceKeys%22:%7B%7D%7D&usp=sharing)
+
+
+## ToDo:
 - [ X ] Fix the sort icons that currently look off
 - [ X ] Style the navigation pills so they do not look bland
 - [ X ] Add a nice custom scrollbar to the website
@@ -22,13 +65,10 @@
     - [ _ ] Use the arrow keys to go next or previous
     - [ _ ] Tap the left or right edge of the screen to go next or previous
 - [ _ ] Make server acccount for images removed/added after its start
+- [ _ ] Make settings persist after page reloads
 
-# How To ???
-- Put the **server.py** in the **root** images **folder** and run:
-  - **python ./server.py**
-- Refresh the website
 
-# Preview:
+## Preview:
 ![Preview](./assets/images/image.png)
 ![PreviewToo](./assets/images/imageToo.png)
 ![PreviewTree](./assets/images/imageTree.png)

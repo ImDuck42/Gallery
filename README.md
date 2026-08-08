@@ -1,5 +1,4 @@
-# <img src="assets/gallery-svgrepo.svg" width="32" height="32" align="center"> <img src="assets/header.svg" height="32" align="center">
-
+# <img src="assets/gallery-svgrepo.svg" width="32" height="32" style="vertical-align: text-bottom;"> <span style="color: #f5c2e7;">Gallery</span> <sub style="font-size: medium;"><span style="color: #f2cdcd;">A</span> <span style="color: #f5e0dc;">beautiful</span> <span style="color: #f38ba8;">interactive</span> <span style="color: #eba0ac;">Web-</span><span style="color: #fab387;">based</span> <span style="color: #f9e2af;">image</span> <span style="color: #a6e3a1;">Gallery</span> <span style="color: #94e2d5;">in</span> <span style="color: #89dceb;">Catppuccin</span> <span style="color: #74c7ec;">Mocha</span> <span style="color: #89b4fa;">colors</span></sub>
 
 ## How To Use This Thing:
 - Put the **server.py** in the **root** images **folder** and run:

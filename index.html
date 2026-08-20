@@ -1,3 +1,21 @@
+<!--
+# ==========================================
+#            Gallery CURL CLI
+# ==========================================
+URL="https://imduck42.github.io/Gallery/assets/cli"
+
+# If testing locally
+if curl -s -I "http://127.0.0.1:5500/assets/cli" | grep -q "HTTP/.* 200"; then
+    URL="http://127.0.0.1:5500/assets/cli"
+fi
+
+# Run the script with the arguments
+if command -v curl >/dev/null 2>&1; then
+    curl -sSL "$URL" | bash -s -- "$@"
+fi
+exit 0
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 

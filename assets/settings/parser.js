@@ -5,8 +5,8 @@ const SETTINGS_JSON_URL   = './settings.json'
 const SETTINGS_SCRIPT_SRC = document.currentScript?.src
 
 const SETTINGS_ACCENTS = [
-  'rosewater', 'flamingo', 'pink', 'mauve', 'red', 'maroon', 'peach',
-  'yellow', 'green', 'teal', 'sky', 'sapphire', 'blue', 'lavender',
+  'rosewater', 'flamingo', 'pink', 'mauve', 'red',      'maroon', 'peach',
+  'yellow',    'green',    'teal', 'sky',   'sapphire', 'blue',   'lavender',
 ]
 
 const SELECTORS = {
@@ -17,7 +17,7 @@ let settingsElementSeq = 0
 const settingsState    = {}
 
 // ==================================================================================================== //
-// HELPERS
+// unpaid HELPERS
 // ==================================================================================================== //
 function resolveSettingsAccent(accentName, fallbackAccent) {
   if (accentName && SETTINGS_ACCENTS.includes(accentName)) return accentName
@@ -279,7 +279,7 @@ function createDropdownElement(element, parentAccent) {
 }
 
 // ==================================================================================================== //
-// ELEMENT CREATION
+// ELEMENT of CREATION
 // ==================================================================================================== //
 const SETTINGS_ELEMENT_BUILDERS = {
   checkbox: createCheckboxElement,

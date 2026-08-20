@@ -996,10 +996,90 @@ header {
   }
 }
 
+/* =============== RIGHT-CLICK MENU =============== */
+.context-menu {
+  position:         fixed;
+  display:          none;
+  z-index:          1; /* Above da full-screen modal */
+  padding:          6px;
+  background-color: rgb(var(--ctp-surface0-rgb));
+  border:           3px solid rgb(var(--ctp-surface1-rgb));
+  border-radius:    12px;
+  box-shadow:       2px 2px 5px rgb(var(--ctp-crust-rgb));
+  transition:       all 0.15s cubic-bezier(0.35, 1.55, 0.65, 1);
+
+  &.visible { 
+    display:        flex; 
+    flex-direction: column;
+    gap:            2px;
+    animation:      poop-in 0.15s cubic-bezier(0.35, 1.55, 0.65, 1);
+  }
+
+  .option {
+    display:       flex;
+    align-items:   center;
+    gap:           12px;
+    padding:       8px 12px;
+    background:    none;
+    border:        none;
+    color:         rgb(var(--ctp-text-rgb));
+    font:          800 0.85rem sans-serif;
+    border-radius: 8px;
+    cursor:        pointer;
+    transition:    all 0.15s ease;
+
+    i { 
+      width:      16px;
+      text-align: left;
+      color:      rgb(var(--accent));
+      transition: color 0.15s ease;
+    }
+
+    &:hover:not(.disabled) { 
+      background-color: rgb(var(--accent));
+      color:            rgb(var(--ctp-crust-rgb));
+
+      i {
+        color: rgb(var(--ctp-crust-rgb));
+      }
+    }
+
+    &:active {
+      transform: scale(0.975);
+    }
+
+    &.disabled {
+      color: rgb(var(--ctp-overlay0-rgb));
+
+      i { 
+        color: rgb(var(--ctp-surface2-rgb));
+      }
+    }
+  }
+
+  .divider {
+    height:           3px;
+    background-color: rgb(var(--ctp-surface1-rgb));
+    margin:           6px 4px;
+    border-radius:    100vw;
+  }
+}
+
 /* =============== Animations =============== */
 @keyframes marquee-loop {
   0%   { transform: translateX(0); }
   10%  { transform: translateX(0); }
   90%  { transform: translateX(calc(-100% + var(--marquee-room))); }
   100% { transform: translateX(calc(-100% + var(--marquee-room))); }
+}
+
+@keyframes poop-in {
+  from {
+    opacity:   0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity:   1;
+    transform: scale(1);
+  }
 }

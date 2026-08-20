@@ -2,15 +2,15 @@
 // CONFIGURATION & STATE
 // ==================================================================================================== //
 const ACCENT_NAMES = [
-  'rosewater', 'flamingo', 'pink', 'mauve', 'red', 'maroon',
-  'peach', 'yellow', 'green', 'teal', 'sky', 'sapphire', 'blue', 'lavender',
+  'rosewater', 'flamingo', 'pink', 'mauve', 'red',      'maroon', 'peach',
+  'yellow',    'green',    'teal', 'sky',   'sapphire', 'blue',   'lavender',
 ]
 
 const ACCENT_HEX_COLORS = {
-  rosewater: '#f5e0dc', flamingo: '#f2cdcd', pink: '#f5c2e7', mauve: '#cba6f7',
-  red: '#f38ba8', maroon: '#eba0ac', peach: '#fab387', yellow: '#f9e2af',
-  green: '#a6e3a1', teal: '#94e2d5', sky: '#89dceb', sapphire: '#74c7ec',
-  blue: '#89b4fa', lavender: '#b4befe',
+  rosewater: '#f5e0dc', flamingo: '#f2cdcd', pink:  '#f5c2e7', mauve:    '#cba6f7',
+  red:       '#f38ba8', maroon:   '#eba0ac', peach: '#fab387', yellow:   '#f9e2af',
+  green:     '#a6e3a1', teal:     '#94e2d5', sky:   '#89dceb', sapphire: '#74c7ec',
+  blue:      '#89b4fa', lavender: '#b4befe',
 }
 
 // Selector map
@@ -33,16 +33,19 @@ const SELECTORS = {
   searchSubmit:    '.search-submit',
   imageCountLabel: '.image-count',
   folderTitle:     '.folder-title',
+  settingsPage:    '.settings-page',
+  settingsSection: '.section',
+  settingsEntry:   '.entry',
 }
 
 /**
  * Dataset schema used by folder cards and gallery cards so that
  * applyCurrentSort() and applyActiveFilters() can read them:
- *   data-name        -> sortable/searchable label (folder name, or image name)
- *   data-size        -> size in MB/bytes, used for size sorting
- *   data-date        -> synthetic creation timestamp, used for date sorting
- *   data-type        -> 'folder' or file extension, used for type sorting
- *   data-folder-name -> (gallery cards only) the folder an image belongs to
+ *    data-name        -> sortable/searchable label (folder name, or image name)
+ *    data-size        -> size in MB/bytes, used for size sorting
+ *    data-date        -> creation timestamp, used for date sorting
+ *    data-type        -> 'folder' or file extension, used for type sorting
+ *    data-folder-name -> (gallery cards only) the folder an image belongs to
  */
 const GALLERY_SERVER_URL = 'http://localhost:4269'
 
@@ -70,6 +73,14 @@ function applyAccentColor(card, accentName) {
 function nextCardTimestamp() {
   cardSequenceNumber += 1
   return Date.now() - cardSequenceNumber * 1000
+}
+
+function matchesSearch(text, query) {
+  return !query || (text || '').toLowerCase().includes(query)
+}
+
+function anyMatchesSearch(values, query) {
+  return !query || values.some((value) => matchesSearch(value, query))
 }
 
 // ==================================================================================================== //
@@ -138,7 +149,7 @@ function renderNextBatch() {
   if (!gridContainer || renderIndex >= filteredImages.length) return
 
   const fragment = document.createDocumentFragment()
-  const end = Math.min(renderIndex + BATCH_SIZE, filteredImages.length)
+  const end      = Math.min(renderIndex + BATCH_SIZE, filteredImages.length)
 
   for (let index = renderIndex; index < end; index++) {
     const img  = filteredImages[index]
@@ -210,7 +221,7 @@ function initFullScreenModal() {
 
   const scaleModalImage = () => {
     const imageRatio    = modalImage.naturalWidth / modalImage.naturalHeight
-    const viewportRatio = window.innerWidth / window.innerHeight
+    const viewportRatio = window.innerWidth       / window.innerHeight
 
     if (imageRatio > viewportRatio) {
       modalImage.style.width  = '100%'
@@ -267,83 +278,94 @@ function initFilterPanelAutoHide() {
   }, { passive: true })
 }
 
-function enableChipScrollInteractions() {
-  const container = document.querySelector(SELECTORS.chipContainer)
-  if (!container) return
+function maxScrollLeftOf(container) {
+  return container.scrollWidth - container.clientWidth
+}
 
-  let targetScrollLeft    = container.scrollLeft
-  let animationFrameId    = 0
-  let isPointerDown       = false
-  let hasDragged          = false
-  let shouldSuppressClick = false
-  let dragStartX          = 0
-  let dragStartScrollLeft = 0
-
-  const animateScrollStep = () => {
-    const remainingDistance = targetScrollLeft - container.scrollLeft
-    if (Math.abs(remainingDistance) > 0.5) {
-      container.scrollLeft += remainingDistance * 0.15
-      animationFrameId = requestAnimationFrame(animateScrollStep)
-    } else {
-      container.scrollLeft = targetScrollLeft
-      animationFrameId = 0
-    }
+function stepInertialScroll(container, state) {
+  const remainingDistance = state.targetScrollLeft - container.scrollLeft
+  if (Math.abs(remainingDistance) > 0.5) {
+    container.scrollLeft += remainingDistance * 0.15
+    state.animationFrameId = requestAnimationFrame(() => stepInertialScroll(container, state))
+  } else {
+    container.scrollLeft = state.targetScrollLeft
+    state.animationFrameId = 0
   }
+}
 
+function enableChipWheelScroll(container, state) {
   container.addEventListener('wheel', (event) => {
-    if (isPointerDown || container.scrollWidth <= container.clientWidth) return
-    if (!animationFrameId) targetScrollLeft = container.scrollLeft
+    if (state.isPointerDown || container.scrollWidth <= container.clientWidth) return
+    if (!state.animationFrameId) state.targetScrollLeft = container.scrollLeft
     event.preventDefault()
 
-    const maxScrollLeft = container.scrollWidth - container.clientWidth
-    targetScrollLeft = Math.max(0, Math.min(targetScrollLeft + 0.5 * event.deltaY, maxScrollLeft))
-    if (!animationFrameId) animationFrameId = requestAnimationFrame(animateScrollStep)
+    state.targetScrollLeft = Math.max(0, Math.min(state.targetScrollLeft + 0.5 * event.deltaY, maxScrollLeftOf(container)))
+    if (!state.animationFrameId) state.animationFrameId = requestAnimationFrame(() => stepInertialScroll(container, state))
   }, { passive: false })
+}
 
+function enableChipDragScroll(container, state) {
   container.addEventListener('pointerdown', (event) => {
     if (event.button !== 0) return
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId)
-      animationFrameId = 0
+    if (state.animationFrameId) {
+      cancelAnimationFrame(state.animationFrameId)
+      state.animationFrameId = 0
     }
 
-    isPointerDown       = true
-    hasDragged          = false
-    shouldSuppressClick = false
-    dragStartX          = event.clientX
-    dragStartScrollLeft = container.scrollLeft
-    targetScrollLeft    = dragStartScrollLeft
+    state.isPointerDown       = true
+    state.hasDragged          = false
+    state.shouldSuppressClick = false
+    state.dragStartX          = event.clientX
+    state.dragStartScrollLeft = container.scrollLeft
+    state.targetScrollLeft    = state.dragStartScrollLeft
     container.classList.add('dragging')
   })
 
   window.addEventListener('pointermove', (event) => {
-    if (!isPointerDown) return
-    const dragDistance = event.clientX - dragStartX
-    if (Math.abs(dragDistance) > 5) hasDragged = true
+    if (!state.isPointerDown) return
+    const dragDistance = event.clientX - state.dragStartX
+    if (Math.abs(dragDistance) > 5) state.hasDragged = true
 
-    const maxScrollLeft  = container.scrollWidth - container.clientWidth
-    container.scrollLeft = Math.max(0, Math.min(dragStartScrollLeft - dragDistance, maxScrollLeft))
+    container.scrollLeft = Math.max(0, Math.min(state.dragStartScrollLeft - dragDistance, maxScrollLeftOf(container)))
   })
 
   const endPointerDrag = () => {
-    if (!isPointerDown) return
-    isPointerDown = false
+    if (!state.isPointerDown) return
+    state.isPointerDown = false
     container.classList.remove('dragging')
-    targetScrollLeft = container.scrollLeft
-    if (hasDragged) shouldSuppressClick = true
+    state.targetScrollLeft = container.scrollLeft
+    if (state.hasDragged) state.shouldSuppressClick = true
   }
 
   window.addEventListener('pointerup', endPointerDrag)
   window.addEventListener('pointercancel', endPointerDrag)
 
   container.addEventListener('click', (event) => {
-    if (hasDragged || shouldSuppressClick) {
+    if (state.hasDragged || state.shouldSuppressClick) {
       event.preventDefault()
       event.stopPropagation()
-      shouldSuppressClick = false
-      hasDragged          = false
+      state.shouldSuppressClick = false
+      state.hasDragged          = false
     }
   }, { capture: true })
+}
+
+function enableChipScrollInteractions() {
+  const container = document.querySelector(SELECTORS.chipContainer)
+  if (!container) return
+
+  const state = {
+    targetScrollLeft:    container.scrollLeft,
+    animationFrameId:    0,
+    isPointerDown:       false,
+    hasDragged:          false,
+    shouldSuppressClick: false,
+    dragStartX:          0,
+    dragStartScrollLeft: 0,
+  }
+
+  enableChipWheelScroll(container, state)
+  enableChipDragScroll(container,  state)
 }
 
 function initSearchIconHover() {
@@ -419,67 +441,99 @@ function setActiveFolderFilter(folderName) {
   applyActiveFilters()
 }
 
-function applyActiveFilters() {
-  const query         = currentSearchQuery.trim().toLowerCase()
+function filterSettingsEntries(query) {
+  const settingsPage = document.querySelector(SELECTORS.settingsPage)
+  if (!settingsPage) return
+
+  settingsPage.querySelectorAll(SELECTORS.settingsSection).forEach((section) => {
+    const entries = Array.from(section.querySelectorAll(SELECTORS.settingsEntry))
+    let sectionHasMatch = entries.length === 0
+
+    entries.forEach((entry) => {
+      const entryMatchesQuery = matchesSearch(entry.textContent, query)
+      entry.style.display = entryMatchesQuery ? '' : 'none'
+      if (entryMatchesQuery) sectionHasMatch = true
+    })
+
+    section.style.display = sectionHasMatch ? '' : 'none'
+  })
+}
+
+function getActiveTabInfo() {
+  const panels = document.querySelectorAll(SELECTORS.contentSections)
+  return {
+    isGalleryTab:  panels.length > 1 && panels[1].classList.contains('active'),
+    isSettingsTab: panels.length > 2 && panels[2].classList.contains('active'),
+  }
+}
+
+function filterFolderChips(query, isGalleryTab) {
   const chipContainer = document.querySelector(SELECTORS.chipContainer)
   const allChip       = chipContainer?.querySelector('.chip[data-folder="all"]')
   const folderChips   = Array.from(chipContainer?.querySelectorAll('.chip:not([data-folder="all"])') || [])
-  
-  const panels       = document.querySelectorAll(SELECTORS.contentSections)
-  const isGalleryTab = panels.length > 1 && panels[1].classList.contains('active')
 
   folderChips.forEach((chip) => {
     const folderName = chip.dataset.folder || ''
-    let chipMatchesQuery = !query
-    
-    if (query) {
-      if (isGalleryTab) {
-        chipMatchesQuery = allGalleryImages.some(img => img.folderName === folderName && img.name.toLowerCase().includes(query))
-      } else {
-        chipMatchesQuery = folderName.toLowerCase().includes(query)
-      }
-    }
-    
+    const chipMatchesQuery = isGalleryTab
+      ? anyMatchesSearch(allGalleryImages.filter((img) => img.folderName === folderName).map((img) => img.name), query)
+      : matchesSearch(folderName, query)
+
     chip.style.display = chipMatchesQuery ? '' : 'none'
   })
 
   if (allChip) allChip.style.display = ''
 
-  const visibleFolderNames = folderChips
+  return folderChips
     .filter((chip) => chip.style.display !== 'none')
     .map((chip)    => chip.dataset.folder)
+}
 
-  activeFolderFilters = activeFolderFilters.filter((folder) => folder === 'all' || visibleFolderNames.includes(folder))
-
+function filterFolderCards(query, isGalleryTab) {
   document.querySelectorAll(`${SELECTORS.folderGrid} .folder-card`).forEach((card) => {
     const folderName          = card.dataset.name || ''
     const matchesFolderFilter = isGalleryTab ? activeFolderFilters.includes('all') || activeFolderFilters.includes(folderName) : true
-    const matchesQuery        = !query || [folderName, card.textContent].some((value) => (value || '').toLowerCase().includes(query))
+    const matchesQuery        = anyMatchesSearch([folderName, card.textContent], query)
     card.style.display        = matchesFolderFilter && matchesQuery ? '' : 'none'
   })
+}
 
-  filteredImages = allGalleryImages.filter((img) => {
+function filterGalleryImages(query, isGalleryTab) {
+  return allGalleryImages.filter((img) => {
     const matchesFolderFilter = activeFolderFilters.includes('all') || activeFolderFilters.includes(img.folderName)
-    
-    let matchesQuery = !query
-    if (query) {
-      if (isGalleryTab) {
-        matchesQuery = img.name.toLowerCase().includes(query)
-      } else {
-        matchesQuery = [img.folderName, img.name].some((value) => value.toLowerCase().includes(query))
-      }
-    }
-    
+    const matchesQuery = isGalleryTab
+      ? matchesSearch(img.name, query)
+      : anyMatchesSearch([img.folderName, img.name], query)
+
     return matchesFolderFilter && matchesQuery
   })
+}
 
-  updateImageCount(filteredImages.length)
-
+function rerenderGalleryGrid() {
   const gridContainer = document.querySelector(SELECTORS.galleryMasonry)
   if (gridContainer) gridContainer.innerHTML = ''
-  
+
   renderIndex = 0
   renderNextBatch()
+}
+
+function applyActiveFilters() {
+  const query = currentSearchQuery.trim().toLowerCase()
+  const { isGalleryTab, isSettingsTab } = getActiveTabInfo()
+
+  if (isSettingsTab) {
+    filterSettingsEntries(query)
+    return
+  }
+
+  const visibleFolderNames = filterFolderChips(query, isGalleryTab)
+  activeFolderFilters      = activeFolderFilters.filter((folder) => folder === 'all' || visibleFolderNames.includes(folder))
+
+  filterFolderCards(query, isGalleryTab)
+
+  filteredImages = filterGalleryImages(query, isGalleryTab)
+  updateImageCount(filteredImages.length)
+
+  rerenderGalleryGrid()
 }
 
 function updateImageCount(count) {
@@ -556,11 +610,16 @@ function initSortPill() {
     icon.classList.add(direction === 'down' ? 'fa-arrow-down' : 'fa-arrow-up')
   }
 
+  const nextDirectionFor = (option) => {
+    const wasActive      = option.classList.contains('active')
+    const savedDirection = option.dataset.direction
+    if (!wasActive) return savedDirection || 'up'
+    return savedDirection === 'up' ? 'down' : 'up'
+  }
+
   options.forEach((option) => {
     option.addEventListener('click', () => {
-      const wasActive      = option.classList.contains('active')
-      const savedDirection = option.dataset.direction
-      const direction      = wasActive ? (savedDirection === 'up' ? 'down' : 'up') : (savedDirection || 'up')
+      const direction = nextDirectionFor(option)
 
       options.forEach((item) => {
         item.classList.remove('active')
@@ -625,40 +684,50 @@ function initGalleryFilters() {
 // ==================================================================================================== //
 // FOLDER LOADING (via server.py on localhost:4269)
 // ==================================================================================================== //
+function buildImageUrl(folderName, fileName) {
+  return `${GALLERY_SERVER_URL}/image?folder=${encodeURIComponent(folderName)}&file=${encodeURIComponent(fileName)}`
+}
+
+function getFolderPreviewUrl(folder) {
+  return folder.images.length > 0 ? buildImageUrl(folder.name, folder.images[0].name) : ''
+}
+
+function registerFolderImages(folder) {
+  folder.images.forEach((img) => {
+    allGalleryImages.push({
+      folderName: folder.name,
+      name:       img.name,
+      size:       img.size,
+      date:       nextCardTimestamp(),
+      type:       (img.name.split('.').pop() || 'img').toLowerCase(),
+      accent:     folder.accent,
+      url:        buildImageUrl(folder.name, img.name)
+    })
+  })
+}
+
+function createFolderChip(folderName) {
+  const chipContainer = document.querySelector(SELECTORS.chipContainer)
+  if (!chipContainer) return
+
+  const chip          = document.createElement('button')
+  chip.className      = 'chip'
+  chip.dataset.folder = folderName
+  chip.innerHTML      = `<span>${folderName}</span>`
+  chip.addEventListener('click', () => toggleFilterChip(folderName, chip))
+  chipContainer.appendChild(chip)
+}
+
 async function loadFoldersFromServer() {
   const manifestResponse = await fetch(`${GALLERY_SERVER_URL}/folders`)
   if (!manifestResponse.ok) throw new Error(`Manifest request failed: ${manifestResponse.status}`)
 
-  const manifest      = await manifestResponse.json()
-  const chipContainer = document.querySelector(SELECTORS.chipContainer)
+  const manifest = await manifestResponse.json()
 
   for (const folder of manifest) {
-    const previewUrl = folder.images.length > 0 
-        ? `${GALLERY_SERVER_URL}/image?folder=${encodeURIComponent(folder.name)}&file=${encodeURIComponent(folder.images[0].name)}`
-        : ''
-
-    createFolderCard(folder.name, previewUrl, folder.accent, folder.sizeMB, folder.fileCount)
-
-    folder.images.forEach((img) => {
-      allGalleryImages.push({
-        folderName: folder.name,
-        name:       img.name,
-        size:       img.size,
-        date:       nextCardTimestamp(),
-        type:       (img.name.split('.').pop() || 'img').toLowerCase(),
-        accent:     folder.accent,
-        url:        `${GALLERY_SERVER_URL}/image?folder=${encodeURIComponent(folder.name)}&file=${encodeURIComponent(img.name)}`
-      })
-    })
-
-    if (chipContainer) {
-      const chip          = document.createElement('button')
-      chip.className      = 'chip'
-      chip.dataset.folder = folder.name
-      chip.innerHTML      = `<span>${folder.name}</span>`
-      chip.addEventListener('click', () => toggleFilterChip(folder.name, chip))
-      chipContainer.appendChild(chip)
-    }
+    createFolderCard(folder.name, getFolderPreviewUrl(folder), folder.accent, folder.sizeMB, folder.fileCount)
+    registerFolderImages(folder)
+    createFolderChip(folder.name)
   }
 
   applyCurrentSort()
@@ -689,3 +758,118 @@ document.addEventListener('DOMContentLoaded', async () => {
     packAllGalleryCards()
   })
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/** Dont read, ignore this, it dosnt exist yet
+ * Ideas for context
+ * Download Image
+ * Copy Image
+ * View Metadata
+ * Rename \
+ * Delete -\-> Both only if loaded from python server
+ */
+
+/* Don't put false statements in divider pls */
+const contextMenu = () => [
+  { label:  'Download File',
+    icon:   'download',
+    accent: 'green',
+    action: () => console.log('No sank u') },
+  { label:  'Copy File',
+    icon:   'copy',
+    accent: 'teal',
+    action: () => console.log('Me broken, please do again later') },
+  { label:  'Rename File',
+    icon:   'pen',
+    accent: 'rosewater',
+    action: () => console.log('The file is now called "I Only Wanted To Fix A Single Typo In The Header, But It Broke The Entire User Authentication Pipeline And Now The Production Database Is On Fire"') },
+  { label:  'View File Metadata',
+    icon:   'address-card',
+    accent: 'yellow',
+    action: () => console.log('Viewing da Metadata') },
+  { divider: 'false' },
+  { label:  'Delete File',
+    icon:   'eraser',
+    accent: 'red',
+    action: () => console.log('Deleted image: "💢😭💦-06192019.webp"') },
+];
+
+const initContextMenu = () => {
+  const menu = document.body.appendChild(Object.assign(document.createElement('div'), { className: 'context-menu' }))
+  
+  const hide = () => { menu.classList.remove('visible'); menu.innerHTML = ''; }
+
+  document.addEventListener('contextmenu', event => {
+    event.preventDefault();
+    menu.innerHTML = ''
+    
+    contextMenu().forEach(option => {
+      menu.appendChild(Object.assign(document.createElement(option.divider ? 'div' : 'button'), {
+        className: option.divider ? 'divider' : `option ${option.disabled ? 'disabled' : ''}`,
+        disabled:  !!option.disabled,
+        innerHTML: option.divider ? '' : `<i class="fas fa-${option.icon}"></i><span>${option.label}</span>`,
+        onclick: () => !option.disabled && (hide(), option.action?.())
+      })).style.setProperty('--accent', `var(--ctp-${option.accent || 'mauve'}-rgb)`)
+    })
+
+    menu.classList.add('visible')
+    Object.assign(menu.style, { left: `${Math.max(Math.min(event.clientX, window.innerWidth  - menu.offsetWidth  - 10))}px`,
+                                top:  `${Math.max(Math.min(event.clientY, window.innerHeight - menu.offsetHeight - 10))}px` })
+  })
+
+  document.addEventListener('click',   event => !menu.contains(event.target) && hide())
+  document.addEventListener('keydown', event => event.key === 'Escape'       && hide())
+  document.addEventListener('scroll',  hide, { passive: true, capture: true })
+}
+
+initContextMenu();

@@ -320,7 +320,7 @@
         {
           "id"         : "importSettings",
           "label"      : "Import Settings via URL",
-          "description": "Load an external JSON settings file and load its corresponding JavaScript logic.",
+          "description": "Load an external JSON settings file and its corresponding JavaScript logic",
           "icon"       : "cloud-arrow-down",
           "elements"   : [
             {

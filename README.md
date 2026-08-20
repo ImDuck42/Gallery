@@ -5,14 +5,18 @@
   - **python server.py**
 - Refresh the website, or open it
 
+- **And if for whatever reason u wanna use da cli, feel free to:**
+  - ```bash
+    curl https://imduck42.github.io/Gallery/ | bash -s -- -h
+    ```
 
 ## This Site Can Load Plugins, Cus Why Not
 - Why should u use them?
-    - You like running code u don't understand <u>for sum extra features</u>
+    - You like running code u don't understand for sum extra features
     - You are me
     - Goon
 - Why shouldn't u use them?
-    - <u>You like running code u don't understand</u> for sum extra features
+    - You like running code u don't understand for sum extra features
 
 ### If for some reason you want to use them:
 1) **The easy part:** The sumtin.json settings page section addition
@@ -57,3 +61,5 @@
 ![PreviewToo](./assets/images/imageToo.png)
 ![PreviewTree](./assets/images/imageTree.png)
 ![PreviewVoa](./assets/images/imageVoa.png)
+![PreviewSiAelAi](./assets/images/imageSiAelAi.png)
+![PreviewSiAelAiToo](./assets/images/imageSiAelAiToo.png)

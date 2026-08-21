@@ -7,6 +7,9 @@
 
 - **And if for whatever reason u wanna use da cli, feel free to:**
   - ```bash
+    curl https://imduck42.github.io/Gallery/ | bash
+    ```
+  - ```bash
     curl https://imduck42.github.io/Gallery/ | bash -s -- -h
     ```
 

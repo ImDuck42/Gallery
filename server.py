@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 # Doesn't need any pip packages
+# Ignores .hidden folders by default
+""" Instructions:
+  -> Place this file in the root images folder and start it
+"""
 
 import os
 import ssl
@@ -106,10 +110,12 @@ class GalleryRequestHandler(BaseHTTPRequestHandler):
     elif request.path == "/image":
       self.respond_with_image(query, send_body)
     else:
-      self.send_error(404, "Unknown endpoint")
+      self.send_error(404,  f"Unknown endpoint '{request.path}'. Available endpoints: '/folders', '/image?folder=<folder_name>&file=<file_name>'")
 
   def respond_with_manifest(self, send_body):
-    body = json.dumps(build_folder_manifest(self.folders)).encode("utf-8")
+    GalleryRequestHandler.folders = find_image_folders(GalleryRequestHandler.root)
+    body                          = json.dumps(build_folder_manifest(self.folders)).encode("utf-8")
+
     self.send_response(200)
     self.send_header("Content-Type",   "application/json")
     self.send_header("Content-Length", str(len(body)))
@@ -126,7 +132,7 @@ class GalleryRequestHandler(BaseHTTPRequestHandler):
     image_path  = next((path for path in image_paths if path.name == file_name), None)
 
     if not image_path:
-      self.send_error(404, "Image not found")
+      self.send_error(404, "Missing required query parameters. Usage: /image?folder=<folder_name>&file=<file_name>")
       return
 
     try:
@@ -188,10 +194,11 @@ def start_server(server_class, handler_class, address, port, ssl_context=None):
   return server
 
 def main():
-  root       = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(".").resolve()
+  root       = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path("./").resolve()
   http_port  = int(sys.argv[2])            if len(sys.argv) > 2 else DEFAULT_HTTP_PORT
   https_port = int(sys.argv[3])            if len(sys.argv) > 3 else DEFAULT_HTTPS_PORT
 
+  GalleryRequestHandler.root    = root
   GalleryRequestHandler.folders = find_image_folders(root)
   folder_count = len(GalleryRequestHandler.folders)
   image_count  = sum(len(images) for images in GalleryRequestHandler.folders.values())
@@ -215,7 +222,7 @@ def main():
   print(f"\nGallery server running at:")
   print(f"  -> http://{local_ip}:{http_port}")
   print(f"  -> https://{local_ip}:{https_port}\n")
-  print(f"For HTTPS, visit the link and accept the not secure warning")
+  print(f"For HTTPS, visit the link first and accept the not secure warning")
   print("(Use these URLs from other devices in this Wi‑Fi)\n")
 
   try:

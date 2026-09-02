@@ -1,65 +1,45 @@
-function onToggleChange(enableToggle) {
-  console.log('onToggleChange')
+// ==================================================================================================== //
+// GALLERY SERVER SETTINGS
+// ==================================================================================================== //
+function setServerAdress(serverURL, serverPort) {
+  const newAdress = serverURL.concat(':', serverPort)
+  localStorage.setItem('serverAdress', newAdress)
+
+  console.log(`[API] Set new Gallery Server URL to: ${newAdress}`);
 }
 
-function printValue(textValue) {
-  console.log('printValue')
-}
+function populateSettingsAdress() {
+  const storedAddress = localStorage.getItem('serverAdress');
+  if (!storedAddress) return; 
 
-function toggleNotifications(enabled) {
-  console.log('toggleNotifications')
-}
+  try {
+    const address   = new URL(storedAddress);
+    const urlValue  = `${address.protocol}//${address.hostname}`;
+    const portValue = address.port || '';
+    
+    window.SettingsAPI.updateSetting('serverURL',  { default: urlValue });
+    window.SettingsAPI.updateSetting('serverPort', { default: portValue });
+    
+    console.log(`[API] Settings populated with: ${urlValue} and port ${portValue}`);
+  } catch (error) {
+    console.error("[API] Saved address is not a valid URL.", error);
+  }
+} setTimeout(populateSettingsAdress); // Execute imediately
 
-function applyTheme(isDarkMode) {
-  console.log('applyTheme')
-}
-
-function updateUIScale(scaleValue) {
-  console.log('updateUIScale')
-}
-
-function resetScale() {
-  console.log('resetScale')
-}
-
-function applyBrandColor(hexColor) {
-  console.log('applyBrandColor')
-}
-
-function toggleMute(isMuted) {
-  console.log('toggleMute')
-}
-
-function changeVolume(volume) {
-  console.log('changeVolume')
-}
-
-function saveQuietHours(start, end) {
-  console.log('saveQuietHours')
-}
-
-function updatePassword(newPassword) {
-  console.log('updatePassword')
-}
-
-function exportUserData() {
-  console.log('exportUserData')
-}
-
-function deleteAccount() {
-  console.log('deleteAccount')
-}
-
-function pingApiEndpoint(url) {
-  console.log('pingApiEndpoint')
-}
-
-function clearLocalCache() {
-  console.log('clearLocalCache')
+function downloadServer() {
+  const serverAdress = 'https://imduck42.github.io/Gallery/server.py';
+  const downloadLink = document.createElement('a');
+  
+  downloadLink.href     = serverAdress;
+  downloadLink.download = 'server.py';
+  
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
 }
 
 // ==================================================================================================== //
-// DEVELOPER OPTIONS -- The only actually working thing here
+// DEVELOPER OPTIONS
 // ==================================================================================================== //
 async function loadExternalSettingsFromUrl(jsonUrl) {
   if (!jsonUrl) {
@@ -100,6 +80,7 @@ async function loadExternalSettingsFromUrl(jsonUrl) {
     if (!urls.includes(jsonUrl)) {
       urls.push(jsonUrl);
       localStorage.setItem('imports', JSON.stringify(urls));
+      populateImportedSettingsDropdown(); // Solutionary? addition
     }
 
   } catch (error) {
@@ -132,7 +113,46 @@ function injectScript(src) {
     script.onerror = () => {
       reject(new Error(`Failed to load script resource: ${src}`));
     };
-    
+
     document.head.appendChild(script);
   });
+}
+
+
+// Solution for now, not the most pretty
+function populateImportedSettingsDropdown() {
+  const urls       = JSON.parse(localStorage.getItem('imports') || '[]');
+  const newOptions = urls.length > 0 
+    ? urls.map(url => ({ value: url, label: url })) 
+    : [{ value: '', label: 'No imported settings' }];
+
+  window.SettingsAPI.updateSetting('settingsSelector', {
+    options: newOptions,
+    default: newOptions[0].value
+  });
+} setTimeout(populateImportedSettingsDropdown); // Execute immediately
+
+async function deleteSetting() {
+  const wrapper         = document.getElementById('settingsSelector')?.closest('.dropdown');
+  const selectedSetting = wrapper?.querySelector('.options .selected')?.dataset.value;
+  
+  if (!selectedSetting) return;
+
+  const urls        = JSON.parse(localStorage.getItem('imports') || '[]');
+  const updatedUrls = urls.filter(url => url !== selectedSetting);
+
+  localStorage.setItem('imports', JSON.stringify(updatedUrls));
+  populateImportedSettingsDropdown();
+
+  try {
+    const response = await fetch(selectedSetting);
+    if (!response.ok) throw new Error(`HTTP Error! Status: ${response.status}`);
+
+    const data = await response.json();
+    (data.sections || []).forEach((section) => {
+      document.querySelector(`${SELECTORS.settingsPage} .section[data-section-id="${section.id}"]`)?.remove();
+    });
+  } catch (error) {
+    console.error('[API] Failed to remove settings from the page:', error);
+  }
 }

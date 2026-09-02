@@ -10,10 +10,8 @@ HTTP_PORT="${HTTP_PORT:-${PORT:-4269}}"
 HTTPS_PORT="${HTTPS_PORT:-4270}"
 HOST="${HOST:-}"
 
-
-REPO_URL="https://github.com/ImDuck42/Gallery"
 SITE_URL="https://imduck42.github.io/Gallery/"
-SERVER_PY_RAW="https://raw.githubusercontent.com/ImDuck42/Gallery/main/server.py"
+SERVER_PY="https://imduck42.github.io/Gallery/server.py"
 
 # -- STYLING & COLORS ----------------------------------------------------------
 init_colors() {
@@ -23,22 +21,22 @@ init_colors() {
   CLR_DIM="${ESC}[2m"
 
   # Catppuccin Mocha Colors
-  MOCHA_ROSEWATER="${ESC}[38;2;245;224;220m" # #f5e0dc
-  MOCHA_FLAMINGO="${ESC}[38;2;242;205;205m"  # #f2cdcd
-  MOCHA_PINK="${ESC}[38;2;245;194;231m"      # #f5c2e7
-  MOCHA_MAUVE="${ESC}[38;2;203;166;247m"     # #cba6f7
-  MOCHA_RED="${ESC}[38;2;243;139;168m"       # #f38ba8
-  MOCHA_PEACH="${ESC}[38;2;250;179;135m"     # #fab387
-  MOCHA_YELLOW="${ESC}[38;2;249;226;175m"    # #f9e2af
-  MOCHA_GREEN="${ESC}[38;2;166;227;161m"     # #a6e3a1
-  MOCHA_TEAL="${ESC}[38;2;148;226;213m"      # #94e2d5
-  MOCHA_SKY="${ESC}[38;2;137;220;235m"       # #89dceb
-  MOCHA_SAPPHIRE="${ESC}[38;2;116;199;236m"  # #74c7ec
-  MOCHA_BLUE="${ESC}[38;2;137;180;250m"      # #89b4fa
-  MOCHA_LAVENDER="${ESC}[38;2;180;190;254m"  # #b4befe
-  MOCHA_TEXT="${ESC}[38;2;205;214;244m"      # #cdd6f4
-  MOCHA_SUBTEXT="${ESC}[38;2;166;173;200m"   # #a6adc8
-  MOCHA_OVERLAY="${ESC}[38;2;108;112;134m"   # #6c7086
+  MOCHA_ROSEWATER="${ESC}[38;2;245;224;220m" #f5e0dc
+  MOCHA_FLAMINGO="${ESC}[38;2;242;205;205m"  #f2cdcd
+  MOCHA_PINK="${ESC}[38;2;245;194;231m"      #f5c2e7
+  MOCHA_MAUVE="${ESC}[38;2;203;166;247m"     #cba6f7
+  MOCHA_RED="${ESC}[38;2;243;139;168m"       #f38ba8
+  MOCHA_PEACH="${ESC}[38;2;250;179;135m"     #fab387
+  MOCHA_YELLOW="${ESC}[38;2;249;226;175m"    #f9e2af
+  MOCHA_GREEN="${ESC}[38;2;166;227;161m"     #a6e3a1
+  MOCHA_TEAL="${ESC}[38;2;148;226;213m"      #94e2d5
+  MOCHA_SKY="${ESC}[38;2;137;220;235m"       #89dceb
+  MOCHA_SAPPHIRE="${ESC}[38;2;116;199;236m"  #74c7ec
+  MOCHA_BLUE="${ESC}[38;2;137;180;250m"      #89b4fa
+  MOCHA_LAVENDER="${ESC}[38;2;180;190;254m"  #b4befe
+  MOCHA_TEXT="${ESC}[38;2;205;214;244m"      #cdd6f4
+  MOCHA_SUBTEXT="${ESC}[38;2;166;173;200m"   #a6adc8
+  MOCHA_OVERLAY="${ESC}[38;2;108;112;134m"   #6c7086
 }
 
 # -- MAIN UTILITIES ------------------------------------------------------------
@@ -109,7 +107,7 @@ open_url() {
 perform_download() {
   local target_dir="$1"
   if command -v curl >/dev/null 2>&1; then
-    curl -sSL "$SERVER_PY_RAW" -o "${target_dir}/server.py"
+    curl -sSL "$SERVER_PY" -o "${target_dir}/server.py"
     return $?
   fi
   return 1
@@ -204,7 +202,8 @@ ui_menu_footer() {
 print_banner() {
   clear 2>/dev/null || true
   
-  local link="${ESC}]8;;${SITE_URL}${ESC}\\imduck42.github.io/Gallery${ESC}]8;;${ESC}\\"
+  local link_text="imduck42.github.io/Gallery"
+  local link="${ESC}]8;;${SITE_URL}${ESC}\\${link_text}${ESC}]8;;${ESC}\\"
   
   # Styling aliases to render ascii art
   local c0="${MOCHA_OVERLAY}"
@@ -218,6 +217,7 @@ print_banner() {
   local r="${CLR_RESET}"
   local v="${c0}│${r}"
 
+  local padding=$(printf "%$((39 - ${#link_text}))s" "")
   local dots="${MOCHA_ROSEWATER}● ${MOCHA_FLAMINGO}● ${c2}● ${c1}● ${c3}● ${c4}● ${c5}● ${c6}● ${c7}● ${MOCHA_YELLOW}● ${MOCHA_PEACH}●${r}"
   local div="${c1}────────────────${c3}────────────────${c4}────────────────${c6}────────────────${r}"
 
@@ -230,7 +230,7 @@ print_banner() {
   printf "  $v   ${c1}╚██████╔╝${c2}██║  ██║${c3}███████╗${c4}███████╗${c5}███████╗${c6}██║  ██║${c7}   ██║   ${r}   $v\n"
   printf "  $v   ${c1} ╚═════╝ ${c2}╚═╝  ╚═╝${c3}╚══════╝${c4}╚══════╝${c5}╚══════╝${c6}╚═╝  ╚═╝${c7}   ╚═╝   ${r}   $v\n"
   printf "  ${c0}├${div}${c0}┤${r}\n"
-  printf "  $v  ${dots}             %s  $v\n" "${c4}${link}${r}"
+  printf "  $v  ${dots}${padding}${c4}${link}${r}  $v\n"
   printf "  ${c0}╰────────────────────────────────────────────────────────────────╯${r}\n"
 }
 

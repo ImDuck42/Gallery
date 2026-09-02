@@ -1,5 +1,17 @@
 # <img src="assets/gallery-svgrepo.svg" width="32" height="32" alt="Site Icon" style="vertical-align: text-bottom;"> Gallery
 
+## Preview:
+<details>
+  <summary>Click to expand</summary>
+
+  > ![Preview](./assets/images/image.png)
+  > ![PreviewToo](./assets/images/imageToo.png)
+  > ![PreviewTree](./assets/images/imageTree.png)
+  > ![PreviewVoa](./assets/images/imageVoa.png)
+  > ![PreviewSiAelAi](./assets/images/imageSiAelAi.png)
+  > ![PreviewSiAelAiToo](./assets/images/imageSiAelAiToo.png)
+</details>
+
 ## How To Use This Thing:
 - Put the **server.py** in the **root** images **folder** and run:
   - **python server.py**
@@ -18,7 +30,7 @@
     - You like running code u don't understand for sum extra features
     - You are me
     - Goon
-- Why shouldn't u use them?
+- Why u shouldn't use them!
     - You like running code u don't understand for sum extra features
 
 ### If for some reason you want to use them:
@@ -43,7 +55,8 @@
 - [ X ] Add a file count badge to interactive elements:
     - [ X ] Make every single element on the site interactable
 - [ X ] Set the image hover border color to match the color of its folder
-- [ _ ] Allow removal of imported settings
+- [ X ] Allow removal of imported settings
+    - [ _ ] Change it away from url guessing and direct to a sections header
 - [ _ ] Add image controls:
     - [ _ ] Next and previous buttons
     - [ _ ] Slideshow mode (with milliseconds per image setting)
@@ -55,14 +68,8 @@
     - [ _ ] Scroll on the image to go next or previous
     - [ _ ] Use the arrow keys to go next or previous
     - [ _ ] Tap the left or right edge of the screen to go next or previous
-- [ _ ] Make server acccount for images removed/added after its start
-- [ _ ] Make settings persist after page reloads
+- [ X ] Make server acccount for images removed/added after its start
+- [ X ] Make settings persist after page reloads
 
-
-## Preview:
-![Preview](./assets/images/image.png)
-![PreviewToo](./assets/images/imageToo.png)
-![PreviewTree](./assets/images/imageTree.png)
-![PreviewVoa](./assets/images/imageVoa.png)
-![PreviewSiAelAi](./assets/images/imageSiAelAi.png)
-![PreviewSiAelAiToo](./assets/images/imageSiAelAiToo.png)
+## License
+This project is licensed under the **ImDuck42 License**. See the [LICENSE](LICENSE) file for details

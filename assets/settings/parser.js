@@ -295,7 +295,17 @@ function createSettingsElement(element, parentAccent) {
     console.warn('unknown settings element type:', element.type)
     return buildNode('div', 'settings-element unknown')
   }
-  return builder(element, parentAccent)
+
+  if (!isInvisibleSpacer(element)) {
+    element.id = nextSettingsElementId(element)
+  }
+
+  const node = builder(element, parentAccent)
+  if (!isInvisibleSpacer(element)) {
+    window.SettingsElements[element.id] = { config: element, accent: parentAccent }
+  }
+
+  return node
 }
 
 function createSettingsEntry(entry, parentAccent) {
@@ -334,6 +344,37 @@ function createSettingsSection(section) {
 
   wrapper.append(header, list)
   return wrapper
+}
+
+// ==================================================================================================== //
+// SETTINGS API
+// ==================================================================================================== //
+window.SettingsElements = window.SettingsElements || {}
+window.SettingsAPI      = {
+  updateSetting(id, newConfig) {
+    const record = window.SettingsElements[id]
+    if (!record) return console.warn(`[SettingsAPI] Element "${id}" not found.`)
+
+    if (record.config.variable && settingsState[record.config.variable] !== undefined) {
+      record.config.default = settingsState[record.config.variable]
+    }
+
+    Object.assign(record.config, newConfig)
+
+    const innerNode = document.getElementById(id)
+    if (!innerNode) return
+    const wrapper = innerNode.closest('.settings-element')
+    if (!wrapper) return
+
+    const builder    = SETTINGS_ELEMENT_BUILDERS[record.config.type]
+    const newWrapper = builder(record.config, record.accent)
+
+    wrapper.replaceWith(newWrapper)
+  },
+
+  getVariable(variable) {
+    return settingsState[variable]
+  }
 }
 
 // ==================================================================================================== //
@@ -384,7 +425,7 @@ function appendAndRenderSettings(newSections) {
 }
 
 // ==================================================================================================== //
-// It's beatuful outside today INIT?
+// It's beautiful outside today INIT?
 // ==================================================================================================== //
 document.addEventListener('DOMContentLoaded', () => {
   loadSettingsPage().catch((error) => console.error(error))

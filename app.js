@@ -1,6 +1,15 @@
 // ==================================================================================================== //
 // CONFIGURATION & STATE
 // ==================================================================================================== //
+/**
+ * Dataset schema used by folder cards and gallery cards so that
+ * applyCurrentSort() and applyActiveFilters() can read them:
+ *    data-name        -> sortable/searchable label (folder name, or image name)
+ *    data-size        -> size in MB/bytes, used for size sorting
+ *    data-date        -> creation timestamp, used for date sorting
+ *    data-type        -> 'folder' or file extension, used for type sorting
+ *    data-folder-name -> (gallery cards only) the folder an image belongs to
+ */
 const ACCENT_NAMES = [
   'rosewater', 'flamingo', 'pink', 'mauve', 'red',      'maroon', 'peach',
   'yellow',    'green',    'teal', 'sky',   'sapphire', 'blue',   'lavender',
@@ -38,16 +47,7 @@ const SELECTORS = {
   settingsEntry:   '.entry',
 }
 
-/**
- * Dataset schema used by folder cards and gallery cards so that
- * applyCurrentSort() and applyActiveFilters() can read them:
- *    data-name        -> sortable/searchable label (folder name, or image name)
- *    data-size        -> size in MB/bytes, used for size sorting
- *    data-date        -> creation timestamp, used for date sorting
- *    data-type        -> 'folder' or file extension, used for type sorting
- *    data-folder-name -> (gallery cards only) the folder an image belongs to
- */
-const GALLERY_SERVER_URL = 'http://localhost:4269'
+const GALLERY_SERVER_URL = localStorage.getItem('serverAdress') || 'http://localhost:4269';
 
 let activeFolderFilters = ['all']
 let currentSearchQuery  = ''
@@ -682,7 +682,7 @@ function initGalleryFilters() {
 }
 
 // ==================================================================================================== //
-// FOLDER LOADING (via server.py on localhost:4269)
+// FOLDER LOADING (via server.py by default on localhost:4269)
 // ==================================================================================================== //
 function buildImageUrl(folderName, fileName) {
   return `${GALLERY_SERVER_URL}/image?folder=${encodeURIComponent(folderName)}&file=${encodeURIComponent(fileName)}`
@@ -836,7 +836,7 @@ const contextMenu = () => [
   { label:  'View File Metadata',
     icon:   'address-card',
     accent: 'yellow',
-    action: () => console.log('Viewing da Metadata') },
+    action: () => console.log('Viewing da Metadata..., or do I??? *vsauce music starts playing*') },
   { divider: 'false' },
   { label:  'Delete File',
     icon:   'eraser',

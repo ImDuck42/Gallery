@@ -10,7 +10,7 @@
     "!Plugin",
     "license*",
     ".gitignore",
-    "assets/nekoweb/",
+    "assets/nekoweb",
     "assets/images/image?*.png"
   ],
   "renames": {

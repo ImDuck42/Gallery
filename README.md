@@ -1,6 +1,14 @@
 # <img src="assets/gallery-svgrepo.svg" width="32" height="32" alt="Site Icon" style="vertical-align: text-bottom;"> Gallery
 
-## Preview:
+
+## View the live Site:
+| Version           | Site URL                                                          | Release Cycle    | Feel                      | Animal   | Recommended  |
+| :---------------- | :---------------------------------------------------------------- | :--------------- | :------------------------ | :------  | :----------- |
+| **Bleeding Edge** | [imduck42.github.io/Gallery](https://imduck42.github.io/Gallery/) | Rolling Release  | Latest features & changes | **Duck** | Not this one |
+| **Stable\* ish**  | [nyxie.nekoweb.org](https://nyxie.nekoweb.org/)                   | Batched releases | Polished* & fancy(URL)    | Cat      | **This one** |
+*Applies 100% of the time unless you interact with it.
+
+## Image Previews (GH):
 <details>
   <summary>Click to expand</summary>
 
@@ -8,6 +16,7 @@
   > ![PreviewToo](./assets/images/imageToo.png)
   > ![PreviewTree](./assets/images/imageTree.png)
   > ![PreviewVoa](./assets/images/imageVoa.png)
+  > ![PreviewVoaOhVoa](./assets/images/imageVoaOhVoa.png)
   > ![PreviewSiAelAi](./assets/images/imageSiAelAi.png)
   > ![PreviewSiAelAiToo](./assets/images/imageSiAelAiToo.png)
 </details>
@@ -39,10 +48,6 @@
 
 2) **The tedious part:** The sumtin.js file with the functionality of the plugin/extension/addon or whatever u wanna call it
    - https://github.com/ImDuck42/Gallery/blob/main/assets/settings/settings.js
-
-- **Im too lazy so please consult Gemini 3.6 Fash for help with this:**
-   - [Please, oh great Gemini, so help me in my endevour of understanding this oh so confusing stuff](https://aistudio.google.com/app/prompts?state=%7B%22ids%22:%5B%2219RFJ-b5T4ZhdxKar6TQa7vAFMacft3I_%22%5D,%22action%22:%22open%22,%22userId%22:%22106153650093848489488%22,%22resourceKeys%22:%7B%7D%7D&usp=sharing)
-
 
 ## ToDo:
 - [ X ] Fix the sort icons that currently look off

@@ -3,7 +3,7 @@
 #  ImDuck42 / Gallery - CLI Runner
 #  - curl https://imduck42.github.io/Gallery/ | bash
 #  - curl https://imduck42.github.io/Gallery/ | bash -s -- -h
-#  An identical version can be found at: https://nyxie.nekoweb.org/assets/cli
+#  An identical copy can be found at: https://nyxie.nekoweb.org/assets/cli
 # ==============================================================================
 
 # -- CONFIGURATION -------------------------------------------------------------

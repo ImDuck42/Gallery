@@ -9,17 +9,17 @@
 
 *Applies 100% of the time unless you actually interact with it.
 
-## Image Previews (GH):
+## Image Previews (GitHub):
 <details>
   <summary>Click to expand</summary>
 
-  > ![Preview](./assets/images/image.png)
-  > ![PreviewToo](./assets/images/imageToo.png)
-  > ![PreviewTree](./assets/images/imageTree.png)
-  > ![PreviewVoa](./assets/images/imageVoa.png)
-  > ![PreviewVoaOhVoa](./assets/images/imageVoaOhVoa.png)
-  > ![PreviewSiAelAi](./assets/images/imageSiAelAi.png)
-  > ![PreviewSiAelAiToo](./assets/images/imageSiAelAiToo.png)
+  > ![FoldersPreview](./assets/images/FoldersPreview.png)
+  > ![GalleryPreview](./assets/images/GalleryPreview.png)
+  > ![FullscreenPreview](./assets/images/FullscreenPreview.png)
+  > ![SettingsPreview](./assets/images/SettingsPreview.png)
+  > ![404Preview](./assets/images/404Preview.png)
+  > ![CLIHelp](./assets/images/CLIHelp.png)
+  > ![CLIPreview](./assets/images/CLIPreview.png)
 </details>
 
 ## How To Use This Thing:

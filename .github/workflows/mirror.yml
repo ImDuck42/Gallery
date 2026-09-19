@@ -123,12 +123,18 @@ jobs:
           # ==================================================
           renames = config.get("renames", {})
           for old_raw, new_raw in renames.items():
-            old_path = dest_dir / clean_path(old_raw)
-            new_path = dest_dir / clean_path(new_raw)
-            if old_path.exists():
-              new_path.parent.mkdir(parents=True, exist_ok=True)
-              old_path.rename(new_path)
-              print(f"Renamed: {old_raw} -> {new_raw}")
+            old_name = Path(old_raw).name
+            new_name = Path(new_raw).name
+
+            matches = [p for p in dest_dir.rglob(old_name) if p.is_file()]
+            if not matches:
+              print(f"Warning: File to rename not found: {old_name}")
+              continue
+
+            for file_path in matches:
+              new_path = file_path.parent / new_name
+              file_path.rename(new_path)
+              print(f"Renamed: {file_path.relative_to(dest_dir)} -> {new_name}")
 
           # ==================================================
           # REPLACEMENTS

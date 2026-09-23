@@ -12,8 +12,8 @@
     ".gitignore",
     "assets/nekoweb",
     "assets/images/CLIHelp.png",
-    "assets/images/404Preview.png",
     "assets/images/CLIPreview.png",
+    "assets/images/404Background.png",
     "assets/images/FullscreenPreview.png"
   ],
   "renames": {
